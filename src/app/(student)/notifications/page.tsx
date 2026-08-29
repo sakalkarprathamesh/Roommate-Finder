@@ -18,7 +18,7 @@ export default function NotificationsPage() {
         setUnreadCount(data.unreadCount || 0);
       }
     } catch {
-      // handle
+      // handle error
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ export default function NotificationsPage() {
             Notifications Center
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Updates on connection requests, messages, and roommate compatibility reminders.
+            Real-time updates on contact requests, connection approvals, and listing activity.
           </p>
         </div>
 
@@ -92,8 +92,6 @@ export default function NotificationsPage() {
                       ? 'bg-amber-100 text-amber-700'
                       : n.type === 'REQUEST_ACCEPTED'
                       ? 'bg-emerald-100 text-emerald-700'
-                      : n.type === 'NEW_MESSAGE'
-                      ? 'bg-blue-100 text-blue-700'
                       : 'bg-slate-100 text-slate-700'
                   }`}
                 >
@@ -102,7 +100,7 @@ export default function NotificationsPage() {
                   ) : n.type === 'REQUEST_ACCEPTED' ? (
                     <Sparkles className="w-5 h-5" />
                   ) : (
-                    <MessageSquare className="w-5 h-5" />
+                    <Bell className="w-5 h-5" />
                   )}
                 </div>
 
