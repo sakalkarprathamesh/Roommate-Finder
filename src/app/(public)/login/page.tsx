@@ -10,7 +10,6 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  Sparkles,
 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -42,18 +41,13 @@ export default function LoginPage() {
         }
         router.refresh();
       } else {
-        setError(data.error || 'Invalid credentials');
+        setError(data.error || 'Invalid email or password');
       }
     } catch {
       setError('Connection error. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickFill = (testEmail: string, testPass: string) => {
-    setEmail(testEmail);
-    setPassword(testPass);
   };
 
   return (
@@ -127,33 +121,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* 1-Click Test Credentials */}
-        <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-2 text-xs">
-          <div className="flex items-center gap-1.5 font-bold text-slate-700 text-[11px] uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-brand-700" />
-            Quick Test Accounts:
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handleQuickFill('rahul.sharma@gmail.com', 'Password@123')}
-              className="text-left p-2 rounded-lg bg-white border border-slate-200 hover:border-brand-600 text-[11px]"
-            >
-              <div className="font-bold text-slate-900">Rahul Sharma</div>
-              <div className="text-slate-400">Has Vacancy</div>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill('admin@mitadt.ac.in', 'Admin@123')}
-              className="text-left p-2 rounded-lg bg-white border border-slate-200 hover:border-red-600 text-[11px]"
-            >
-              <div className="font-bold text-red-700">Housing Admin</div>
-              <div className="text-slate-400">Admin Portal</div>
-            </button>
-          </div>
-        </div>
-
-        <p className="text-center text-xs text-slate-500">
+        <p className="text-center text-xs text-slate-500 pt-2 border-t border-slate-100">
           New to MIT-ADT Roommate Finder?{' '}
           <Link href="/register" className="font-bold text-brand-900 hover:underline">
             Register now
