@@ -110,8 +110,9 @@ export async function POST(req: Request) {
     });
 
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Registration error:', error);
-    return NextResponse.json({ error: 'Failed to create account. Please try again.' }, { status: 500 });
+    const msg = error?.message || 'Database error occurred while creating account.';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
