@@ -3,6 +3,8 @@ import './globals.css';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata: Metadata = {
   title: 'MIT-ADT Roommate Finder | Student Accommodation & Roommate Discovery',
@@ -22,6 +24,8 @@ export default function RootLayout({
         <main className="flex-1 w-full">{children}</main>
         <Footer />
         <MobileBottomNav />
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
