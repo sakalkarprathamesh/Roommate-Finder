@@ -8,14 +8,7 @@
 /out/
 
 # Production & environment variables
-.env
 .env*.local
-
-# Database
-prisma/dev.db
-prisma/dev.db-journal
-*.sqlite
-*.sqlite3
 
 # Logs
 npm-debug.log*

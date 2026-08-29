@@ -1,22 +1,36 @@
 import { PrismaClient } from '@prisma/client';
+import fs from 'fs';
+import path from 'path';
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-// Automatically resolve connection URL from any Vercel Postgres / Neon / Supabase env var
-const resolvedDbUrl =
-  process.env.POSTGRES_PRISMA_URL ||
-  process.env.DATABASE_URL ||
-  process.env.POSTGRES_URL_NON_POOLING ||
-  process.env.POSTGRES_URL;
+function getSqliteUrl(): string | undefined {
+  // In Vercel serverless execution, copy the bundled database to writeable /tmp
+  if (process.env.VERCEL) {
+    const tmpDbPath = '/tmp/dev.db';
+    const bundledDbPath = path.join(process.cwd(), 'prisma', 'dev.db');
 
-if (resolvedDbUrl && !process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = resolvedDbUrl;
+    if (!fs.existsSync(tmpDbPath)) {
+      try {
+        if (fs.existsSync(bundledDbPath)) {
+          fs.copyFileSync(bundledDbPath, tmpDbPath);
+        }
+      } catch (err) {
+        console.error('Error copying bundled database to /tmp:', err);
+      }
+    }
+    return `file:${tmpDbPath}`;
+  }
+
+  return undefined;
 }
+
+const sqliteUrl = getSqliteUrl();
 
 export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
-    datasources: resolvedDbUrl ? { db: { url: resolvedDbUrl } } : undefined,
+    datasources: sqliteUrl ? { db: { url: sqliteUrl } } : undefined,
     log: ['error', 'warn'],
   });
 
