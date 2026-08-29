@@ -1,0 +1,130 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  role         String    @default("student") // "student", "admin"
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  profile      Profile?
+  listings     Listing[] @relation("UserListings")
+
+  sentRequests     ContactRequest[] @relation("SentRequests")
+  receivedRequests ContactRequest[] @relation("ReceivedRequests")
+
+  reportsFiled    Report[] @relation("ReporterUser")
+  reportsReceived Report[] @relation("ReportedTargetUser")
+
+  notifications Notification[]
+}
+
+model Profile {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name               String
+  email              String   // Personal Gmail or student email
+  phone              String
+  school             String   // e.g. "School of Computing", "School of Design", "School of Engineering"
+  department         String   // e.g. "Computer Science & Engineering", "Product Design"
+  year               String   // "1st Year", "2nd Year", "3rd Year", "4th Year"
+  division           String?  // Optional: "Div A", "Div B"
+  studentId          String?  // Optional Student ID / Roll Number
+  profilePhotoUrl    String?
+  bio                String?
+  emailVerified      Boolean  @default(false)
+  studentVerified    Boolean  @default(false)
+  verificationStatus String   @default("pending") // "pending", "verified", "rejected"
+  role               String   @default("student")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model EmailOtp {
+  id        String   @id @default(cuid())
+  email     String
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model Listing {
+  id                String   @id @default(cuid())
+  ownerId           String
+  owner             User     @relation("UserListings", fields: [ownerId], references: [id], onDelete: Cascade)
+  title             String
+  listingType       String   // "NEED_ROOMMATE", "NEED_ACCOMMODATION", "HAVE_VACANCY", "HAVE_ROOM"
+  accommodationType String   // "Hostel", "Flat", "Room", "PG", "Other"
+  roomType          String   // "Private", "Shared"
+  location          String   // "Near MIT-ADT", "Loni Kalbhor", "Wagholi", "Kharadi", "Manjari", "Hadapsar"
+  rent              Int      // Monthly rent in ₹
+  deposit           Int      @default(0) // Security deposit in ₹
+  currentOccupants  Int      @default(0) // Current occupants
+  vacancies         Int      @default(1) // Vacancies available
+  totalCapacity     Int      @default(1) // Total capacity of room/flat
+  moveInDate        String   // e.g. "September 2026", "Immediately"
+  expiresAt         DateTime // Listing expiration timestamp
+  description       String
+  status            String   @default("ACTIVE") // "ACTIVE", "FILLED", "EXPIRED", "REMOVED"
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  contactRequests   ContactRequest[]
+  reports           Report[]
+}
+
+model ContactRequest {
+  id         String   @id @default(cuid())
+  senderId   String
+  sender     User     @relation("SentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User     @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  listingId  String
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  status     String   @default("PENDING") // "PENDING", "ACCEPTED", "REJECTED", "CANCELLED"
+  message    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([senderId, listingId])
+}
+
+model Report {
+  id             String    @id @default(cuid())
+  reporterId     String
+  reporter       User      @relation("ReporterUser", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUserId String?
+  reportedUser   User?     @relation("ReportedTargetUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  listingId      String?
+  listing        Listing?  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reason         String    // "Fake information", "Spam", "Inappropriate content", "Listing no longer available", "Other"
+  description    String?
+  status         String    @default("PENDING") // "PENDING", "RESOLVED", "DISMISSED"
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  createdAt      DateTime  @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "REQUEST_RECEIVED", "REQUEST_ACCEPTED", "REQUEST_REJECTED", "LISTING_EXPIRING", "VERIFICATION_STATUS"
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
