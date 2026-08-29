@@ -1,36 +1,25 @@
-const fs = require('fs');
-const path = require('path');
 const { execSync } = require('child_process');
 
 const dbUrl =
   process.env.POSTGRES_PRISMA_URL ||
-  process.env.DATABASE_URL ||
   process.env.POSTGRES_URL_NON_POOLING ||
+  process.env.DATABASE_URL ||
   process.env.POSTGRES_URL;
 
-const schemaPath = path.join(__dirname, '..', 'prisma', 'schema.prisma');
-let schema = fs.readFileSync(schemaPath, 'utf8');
-
-const isPostgres = dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'));
-
-if (isPostgres) {
-  schema = schema.replace(/provider\s*=\s*"sqlite"/, 'provider = "postgresql"');
-  fs.writeFileSync(schemaPath, schema);
+if (dbUrl) {
   process.env.DATABASE_URL = dbUrl;
-  console.log('⚡ Configured Prisma for PostgreSQL cloud database.');
 } else {
-  schema = schema.replace(/provider\s*=\s*"postgresql"/, 'provider = "sqlite"');
-  fs.writeFileSync(schemaPath, schema);
-  console.log('⚡ Configured Prisma for SQLite database.');
+  // Temporary fallback during Prisma Client build step if env var not yet injected
+  process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/mitadt?schema=public';
 }
 
-console.log('⚡ Generating Prisma Client...');
+console.log('⚡ Generating Prisma Client for Cloud PostgreSQL...');
 execSync('npx prisma generate', { stdio: 'inherit', env: process.env });
 
-if (isPostgres && !dbUrl.includes('localhost:5432')) {
+if (dbUrl && !dbUrl.includes('localhost:5432')) {
   try {
     const migrationUrl = process.env.POSTGRES_URL_NON_POOLING || dbUrl;
-    console.log('⚡ Pushing database schema migrations to PostgreSQL on Vercel...');
+    console.log('⚡ Pushing database schema to Cloud PostgreSQL...');
     execSync(`DATABASE_URL="${migrationUrl}" npx prisma db push --accept-data-loss`, {
       stdio: 'inherit',
       shell: true,
@@ -42,9 +31,9 @@ if (isPostgres && !dbUrl.includes('localhost:5432')) {
       shell: true,
       env: { ...process.env, DATABASE_URL: migrationUrl },
     });
-    console.log('✅ PostgreSQL database sync & seed completed successfully.');
+    console.log('✅ Cloud PostgreSQL database synchronized successfully.');
   } catch (err) {
-    console.warn('⚠️ Database migration/seed note:', err.message);
+    console.warn('⚠️ Note during database sync/seed:', err.message);
   }
 } else {
   console.log('ℹ️ Build completed.');
