@@ -31,20 +31,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
     }
 
+    // Normalize email (lowercase + trim whitespace)
     const cleanEmail = email.toLowerCase().trim();
     if (!isValidEmail(cleanEmail)) {
       return NextResponse.json({ error: 'Please enter a valid email address (e.g. yourname@gmail.com)' }, { status: 400 });
     }
+
+    console.log(`[AUTH_REGISTER] Checking if user exists for email: "${cleanEmail}"`);
 
     const existingUser = await prisma.user.findUnique({
       where: { email: cleanEmail },
     });
 
     if (existingUser) {
+      console.warn(`[AUTH_REGISTER] User "${cleanEmail}" already exists.`);
       return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 });
     }
 
+    // Step 2: Hash password with bcrypt
     const passwordHash = await hashPassword(password);
+
+    console.log(`[AUTH_REGISTER] Creating new user in persistent database for "${cleanEmail}"...`);
 
     const newUser = await prisma.user.create({
       data: {
@@ -74,6 +81,8 @@ export async function POST(req: Request) {
         profile: true,
       },
     });
+
+    console.log(`[AUTH_REGISTER] User created successfully in database (ID: ${newUser.id})`);
 
     await prisma.notification.create({
       data: {
@@ -111,7 +120,7 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error: any) {
-    console.error('Registration error:', error);
+    console.error('[AUTH_REGISTER] Error during registration:', error);
     const msg = error?.message || 'Database error occurred while creating account.';
     return NextResponse.json({ error: msg }, { status: 500 });
   }
