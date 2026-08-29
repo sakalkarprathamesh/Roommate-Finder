@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Inbox as InboxIcon,
   Send,
@@ -16,6 +17,7 @@ import {
 import ContactRequestCard from '@/components/inbox/ContactRequestCard';
 
 export default function InboxPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'connected'>('received');
   const [data, setData] = useState<any>({ received: [], sent: [], connected: [] });
   const [loading, setLoading] = useState(true);
@@ -23,6 +25,10 @@ export default function InboxPage() {
   const fetchInbox = async () => {
     try {
       const res = await fetch('/api/contact-requests');
+      if (res.status === 401) {
+        router.push('/login?redirect=/inbox');
+        return;
+      }
       if (res.ok) {
         const json = await res.json();
         setData(json);

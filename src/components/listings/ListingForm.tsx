@@ -66,6 +66,14 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
       });
 
       const data = await res.json();
+      if (res.status === 401) {
+        setError('Please log in or register to publish an accommodation listing.');
+        setTimeout(() => {
+          router.push(`/login?redirect=${isEdit ? `/listings/${initialData.id}/edit` : '/listings/new'}`);
+        }, 1200);
+        return;
+      }
+
       if (res.ok) {
         setSuccess(isEdit ? 'Listing updated successfully!' : 'Listing published successfully!');
         setTimeout(() => {
@@ -73,10 +81,10 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
           router.refresh();
         }, 1200);
       } else {
-        setError(data.error || 'Failed to save listing');
+        setError(data.error || 'Failed to save listing. Please check the form fields.');
       }
     } catch {
-      setError('Something went wrong. Please try again.');
+      setError('Connection issue. Please check your network and try again.');
     } finally {
       setLoading(false);
     }

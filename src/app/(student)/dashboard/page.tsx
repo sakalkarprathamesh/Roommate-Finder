@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   PlusCircle,
   Building,
@@ -19,6 +20,7 @@ import {
 import { LISTING_TYPES } from '@/lib/constants';
 
 export default function StudentDashboard() {
+  const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [listings, setListings] = useState<any[]>([]);
   const [requests, setRequests] = useState<any>({ received: [], sent: [], connected: [] });
@@ -31,6 +33,11 @@ export default function StudentDashboard() {
         fetch('/api/profile'),
         fetch('/api/contact-requests'),
       ]);
+
+      if (profRes.status === 401 || reqRes.status === 401) {
+        router.push('/login?redirect=/dashboard');
+        return;
+      }
 
       if (profRes.ok) {
         const pData = await profRes.json();

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   User,
   CheckCircle2,
@@ -13,6 +14,7 @@ import {
 import { MIT_SCHOOLS, MIT_DEPARTMENTS, ACADEMIC_YEARS } from '@/lib/constants';
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -32,9 +34,15 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetch('/api/profile')
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.status === 401) {
+          router.push('/login?redirect=/profile');
+          return null;
+        }
+        return res.json();
+      })
       .then((data) => {
-        if (data.profile) {
+        if (data?.profile) {
           setProfile(data.profile);
           setFormData({
             name: data.profile.name || '',

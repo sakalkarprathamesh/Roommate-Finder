@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Shield,
   Users,
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'listings' | 'reports' | 'users'>('listings');
   const [listings, setListings] = useState<any[]>([]);
@@ -30,6 +32,11 @@ export default function AdminDashboardPage() {
         fetch('/api/admin/reports'),
         fetch('/api/admin/users'),
       ]);
+
+      if (sRes.status === 401 || sRes.status === 403) {
+        router.push('/login?redirect=/admin');
+        return;
+      }
 
       if (sRes.ok) setStats((await sRes.json()).stats);
       if (lRes.ok) setListings((await lRes.json()).listings || []);
