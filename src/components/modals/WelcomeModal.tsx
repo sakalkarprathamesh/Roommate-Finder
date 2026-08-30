@@ -11,37 +11,58 @@ import { SUPPORT_EMAIL } from '@/lib/constants';
 
 // Auto-expiry: Stops appearing to all users after 2 months (October 30, 2026)
 const EXPIRY_TIMESTAMP = new Date('2026-10-30T23:59:59Z').getTime();
-const STORAGE_KEY = 'roomie_welcome_note_seen_v1';
+const SESSION_KEY = 'roomie_welcome_note_session_active';
 
 export default function WelcomeModal() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // 1. Auto-expiry check (2 months limit from August 30, 2026)
+    // 1. Auto-expiry check (2 months limit)
     if (Date.now() > EXPIRY_TIMESTAMP) {
       return;
     }
 
-    // 2. Check localStorage to ensure it only shows once per user
+    // 2. Clear legacy permanent suppression keys if present
     try {
-      const hasSeen = localStorage.getItem(STORAGE_KEY);
-      if (!hasSeen) {
-        // Smooth entrance after initial page mount
-        const timer = setTimeout(() => setIsOpen(true), 500);
-        return () => clearTimeout(timer);
+      localStorage.removeItem('roomie_welcome_note_seen_v1');
+      localStorage.removeItem('roomie_founder_welcome_seen_v1');
+      localStorage.removeItem('roomie_welcome_dismissed_v1');
+    } catch {}
+
+    // 3. Strict reload check: If the page load was a reload/refresh, do not open
+    try {
+      if (typeof window !== 'undefined' && window.performance) {
+        const navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0) {
+          const navTiming = navEntries[0] as PerformanceNavigationTiming;
+          if (navTiming.type === 'reload') {
+            return;
+          }
+        } else if ((performance as any).navigation?.type === 1) {
+          return;
+        }
       }
+
+      // 4. Session check: If already seen in this active tab session, do not open on subpage nav / reload
+      const seenInSession = sessionStorage.getItem(SESSION_KEY);
+      if (seenInSession) {
+        return;
+      }
+
+      // Mark session as seen immediately so refreshing does not trigger it
+      sessionStorage.setItem(SESSION_KEY, 'true');
+
+      // Smooth entrance
+      const timer = setTimeout(() => setIsOpen(true), 350);
+      return () => clearTimeout(timer);
     } catch {
-      // LocalStorage access fallback
+      // Fallback: show modal
+      setIsOpen(true);
     }
   }, []);
 
   const handleClose = () => {
     setIsOpen(false);
-    try {
-      localStorage.setItem(STORAGE_KEY, 'true');
-    } catch {
-      // LocalStorage access fallback
-    }
   };
 
   useEffect(() => {
@@ -61,7 +82,7 @@ export default function WelcomeModal() {
   return (
     <div
       onClick={handleClose}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200"
       aria-modal="true"
       role="dialog"
     >
