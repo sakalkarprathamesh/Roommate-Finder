@@ -6,7 +6,6 @@ import {
   Shield,
   Users,
   Building,
-  AlertTriangle,
   CheckCircle2,
   Trash2,
   Check,
@@ -14,6 +13,7 @@ import {
   Mail,
   Phone,
   Ban,
+  Flag,
   RotateCcw,
   Sparkles,
   ExternalLink,
@@ -22,7 +22,7 @@ import {
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'listings' | 'reports' | 'users'>('reports');
+  const [activeTab, setActiveTab] = useState<'reports' | 'listings' | 'users'>('reports');
   const [listings, setListings] = useState<any[]>([]);
   const [reports, setReports] = useState<any[]>([]);
   const [usersList, setUsersList] = useState<any[]>([]);
@@ -80,7 +80,7 @@ export default function AdminDashboardPage() {
         body: JSON.stringify({ status }),
       });
       if (res.ok) {
-        setActionNotice(`Report marked as ${status}.`);
+        setActionNotice(`Report marked as ${status.toLowerCase()}.`);
         setTimeout(() => setActionNotice(''), 4000);
         fetchAllAdminData();
       }
@@ -110,47 +110,49 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Admin Banner */}
-      <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+      {/* Header Banner - Clean Design System (Matching Post Listing & Dashboard) */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400">
-            <Shield className="w-4 h-4" />
-            Protected Administrator Portal
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider">
+            <Shield className="w-3.5 h-3.5 text-brand-700" />
+            Administrator Management Portal
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black mt-1">Platform Moderation & Security</h1>
-          <p className="text-xs text-slate-400">
-            Oversee student accounts, moderate violation reports, and manage accommodation listings.
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-950 mt-1">
+            Platform Moderation & Security
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 max-w-2xl">
+            Review student accounts, manage safety reports, and oversee accommodation listings across MIT-ADT University.
           </p>
         </div>
 
         {actionNotice && (
-          <div className="bg-emerald-950/80 border border-emerald-700 text-emerald-300 text-xs p-3 rounded-xl flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-3 rounded-2xl flex items-center gap-2 shadow-2xs">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
             {actionNotice}
           </div>
         )}
       </div>
 
-      {/* Stats Cards */}
+      {/* Metrics Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-1">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Registered</span>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Users</span>
           <div className="text-2xl sm:text-3xl font-black text-slate-900">{stats?.totalUsers || 0}</div>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-1">
           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Listings</span>
-          <div className="text-2xl sm:text-3xl font-black text-emerald-700">{stats?.activeListings || 0}</div>
+          <div className="text-2xl sm:text-3xl font-black text-brand-900">{stats?.activeListings || 0}</div>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-1">
           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Occupied</span>
-          <div className="text-2xl sm:text-3xl font-black text-brand-900">{stats?.totalOccupied || 0}</div>
+          <div className="text-2xl sm:text-3xl font-black text-emerald-700">{stats?.totalOccupied || 0}</div>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-1">
           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Pending Reports</span>
-          <div className="text-2xl sm:text-3xl font-black text-red-600">{stats?.pendingReports || 0}</div>
+          <div className="text-2xl sm:text-3xl font-black text-slate-700">{stats?.pendingReports || 0}</div>
         </div>
       </div>
 
@@ -158,32 +160,38 @@ export default function AdminDashboardPage() {
       <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveTab('reports')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 flex-shrink-0 ${
-            activeTab === 'reports' ? 'bg-red-700 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 flex-shrink-0 ${
+            activeTab === 'reports'
+              ? 'bg-brand-900 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          <AlertTriangle className="w-4 h-4" />
-          Reports Queue ({reports.length})
+          <Flag className="w-4 h-4" />
+          <span>Reports Queue ({reports.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('listings')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 flex-shrink-0 ${
-            activeTab === 'listings' ? 'bg-brand-900 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 flex-shrink-0 ${
+            activeTab === 'listings'
+              ? 'bg-brand-900 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <Building className="w-4 h-4" />
-          All Listings ({listings.length})
+          <span>All Listings ({listings.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('users')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 flex-shrink-0 ${
-            activeTab === 'users' ? 'bg-brand-900 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 flex-shrink-0 ${
+            activeTab === 'users'
+              ? 'bg-brand-900 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <Users className="w-4 h-4" />
-          Users Directory ({usersList.length})
+          <span>Users Directory ({usersList.length})</span>
         </button>
       </div>
 
@@ -192,82 +200,97 @@ export default function AdminDashboardPage() {
         <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-2xs space-y-4 p-6">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-xs uppercase tracking-wider text-slate-700">
-              Safety, Abuse & Violation Reports ({reports.length})
+              Community Safety & Violation Reports ({reports.length})
             </h3>
             <span className="text-[11px] text-slate-400">Reporter identity is protected and confidential</span>
           </div>
 
           {loading ? (
-            <div className="p-8 text-center text-slate-400 text-xs">Loading reports...</div>
+            <div className="p-12 text-center text-slate-400 text-xs">Loading reports...</div>
           ) : reports.length === 0 ? (
-            <p className="text-xs text-slate-400 py-10 text-center">No reports filed currently.</p>
+            <div className="bg-slate-50 rounded-2xl border border-slate-100 p-12 text-center text-xs text-slate-500">
+              No violation reports filed. Everything is running smoothly.
+            </div>
           ) : (
             <div className="space-y-4">
               {reports.map((r) => (
                 <div
                   key={r.id}
-                  className={`rounded-2xl border p-5 space-y-3 text-xs ${
-                    r.status === 'PENDING' ? 'bg-red-50/30 border-red-200' : 'bg-slate-50 border-slate-200 opacity-80'
+                  className={`rounded-2xl border p-5 space-y-3.5 text-xs transition-colors ${
+                    r.status === 'PENDING'
+                      ? 'bg-white border-slate-200 shadow-2xs'
+                      : 'bg-slate-50/60 border-slate-200 opacity-75'
                   }`}
                 >
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-red-700 bg-red-100 px-2.5 py-1 rounded-lg border border-red-300 text-xs">
+                      <span className="font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 text-xs">
                         {r.reason}
                       </span>
-                      <span className="text-[11px] font-bold text-slate-500 uppercase px-2 py-0.5 bg-white rounded border border-slate-200">
-                        Status: {r.status}
+                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
+                        r.status === 'PENDING'
+                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                          : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                      }`}>
+                        {r.status}
                       </span>
                     </div>
                     <span className="text-slate-400 text-[11px]">{new Date(r.createdAt).toLocaleString()}</span>
                   </div>
 
-                  <p className="text-slate-800 font-medium text-xs bg-white p-3 rounded-xl border border-slate-200/80">
-                    &ldquo;{r.description || 'No additional text provided.'}&rdquo;
+                  <p className="text-slate-700 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                    &ldquo;{r.description || 'No additional details provided.'}&rdquo;
                   </p>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] text-slate-600 pt-1">
-                    <div className="bg-white p-2.5 rounded-lg border border-slate-200">
-                      <span className="text-slate-400 block font-bold uppercase text-[10px]">Reporter (Admin Confidential)</span>
-                      <span className="font-bold text-slate-900">{r.reporter?.profile?.name || 'Student'}</span> ({r.reporter?.email})
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] text-slate-600">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="text-slate-400 block font-bold uppercase text-[10px] mb-0.5">
+                        Reporter (Admin Confidential)
+                      </span>
+                      <span className="font-bold text-slate-900">{r.reporter?.profile?.name || 'Student'}</span>
+                      <span className="text-slate-500 block font-mono text-[10px]">{r.reporter?.email}</span>
                     </div>
 
-                    <div className="bg-white p-2.5 rounded-lg border border-slate-200">
-                      <span className="text-slate-400 block font-bold uppercase text-[10px]">Reported Target</span>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="text-slate-400 block font-bold uppercase text-[10px] mb-0.5">
+                        Reported Target
+                      </span>
                       {r.reportedUser ? (
-                        <span>
-                          User: <strong className="text-slate-900">{r.reportedUser?.profile?.name || 'User'}</strong> ({r.reportedUser?.email})
-                        </span>
+                        <div>
+                          <span className="font-bold text-slate-900">{r.reportedUser?.profile?.name || 'User'}</span>
+                          <span className="text-slate-500 block font-mono text-[10px]">{r.reportedUser?.email}</span>
+                        </div>
                       ) : r.listing ? (
-                        <span>
-                          Listing: <strong className="text-slate-900">{r.listing?.title}</strong> (ID: {r.listing?.id})
-                        </span>
+                        <div>
+                          <span className="font-bold text-slate-900 truncate block">{r.listing?.title}</span>
+                          <span className="text-slate-400 text-[10px]">ID: {r.listing?.id}</span>
+                        </div>
                       ) : (
-                        <span>General report</span>
+                        <span>General inquiry</span>
                       )}
                     </div>
                   </div>
 
-                  {/* Admin Direct Action Buttons from Report */}
-                  <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between flex-wrap gap-2">
+                  {/* Actions Area */}
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       {r.reportedUser && (
                         <button
                           onClick={() => handleUserStatus(r.reportedUser.id, false)}
-                          className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs flex items-center gap-1 shadow-xs"
+                          className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors"
                         >
                           <Ban className="w-3.5 h-3.5" />
-                          Ban Reported User
+                          <span>Ban User</span>
                         </button>
                       )}
 
                       {r.listing && (
                         <button
                           onClick={() => handleRemoveListing(r.listing.id)}
-                          className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 font-bold rounded-lg text-xs flex items-center gap-1 border border-red-300"
+                          className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                          Delete Reported Listing
+                          <span>Delete Listing</span>
                         </button>
                       )}
                     </div>
@@ -277,22 +300,22 @@ export default function AdminDashboardPage() {
                         <>
                           <button
                             onClick={() => handleReportAction(r.id, 'DISMISSED')}
-                            className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 font-bold rounded-lg hover:bg-slate-100"
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors"
                           >
                             Dismiss
                           </button>
                           <button
                             onClick={() => handleReportAction(r.id, 'RESOLVED')}
-                            className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-xs flex items-center gap-1"
+                            className="px-4 py-1.5 bg-brand-900 hover:bg-brand-800 text-white font-bold rounded-xl text-xs shadow-xs flex items-center gap-1.5 transition-colors"
                           >
                             <Check className="w-3.5 h-3.5" />
-                            Mark Resolved
+                            <span>Mark Resolved</span>
                           </button>
                         </>
                       ) : (
-                        <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          Reviewed
+                        <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          Resolved
                         </span>
                       )}
                     </div>
@@ -326,21 +349,21 @@ export default function AdminDashboardPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {listings.map((l) => (
-                  <tr key={l.id} className="hover:bg-slate-50">
+                  <tr key={l.id} className="hover:bg-slate-50 transition-colors">
                     <td className="p-4 font-bold text-slate-900 max-w-xs truncate">{l.title}</td>
-                    <td className="p-4">{l.listingType}</td>
-                    <td className="p-4 font-black">₹{l.rent.toLocaleString('en-IN')}/mo</td>
-                    <td className="p-4">{l.location}</td>
-                    <td className="p-4">{l.owner?.profile?.name || l.owner?.email}</td>
+                    <td className="p-4 text-slate-600">{l.listingType}</td>
+                    <td className="p-4 font-black text-slate-900">₹{l.rent.toLocaleString('en-IN')}/mo</td>
+                    <td className="p-4 text-slate-600">{l.location}</td>
+                    <td className="p-4 text-slate-700">{l.owner?.profile?.name || l.owner?.email}</td>
                     <td className="p-4">
-                      <span className="px-2 py-0.5 bg-slate-100 font-bold text-[10px] rounded">
+                      <span className="px-2.5 py-1 bg-slate-100 border border-slate-200 font-bold text-[10px] rounded-lg">
                         {l.status}
                       </span>
                     </td>
                     <td className="p-4 text-right">
                       <button
                         onClick={() => handleRemoveListing(l.id)}
-                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                         title="Permanently Remove Listing"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -375,25 +398,27 @@ export default function AdminDashboardPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {usersList.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50">
+                  <tr key={u.id} className="hover:bg-slate-50 transition-colors">
                     <td className="p-4 font-bold text-slate-900">{u.profile?.name || 'Unnamed'}</td>
-                    <td className="p-4 font-mono">{u.email}</td>
+                    <td className="p-4 font-mono text-slate-600">{u.email}</td>
                     <td className="p-4 text-slate-500">{u.profile?.department || '—'}</td>
                     <td className="p-4">
-                      <span className={`px-2 py-0.5 font-bold text-[10px] rounded ${
-                        u.role === 'admin' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
+                      <span className={`px-2.5 py-0.5 font-bold text-[10px] rounded-lg border ${
+                        u.role === 'admin'
+                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                          : 'bg-slate-100 text-slate-700 border-slate-200'
                       }`}>
                         {u.role}
                       </span>
                     </td>
                     <td className="p-4">
                       {u.isActive ? (
-                        <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px] rounded">
+                        <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px] rounded-lg">
                           Active
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 font-bold text-[10px] rounded">
-                          Banned / Deactivated
+                        <span className="px-2.5 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 font-bold text-[10px] rounded-lg">
+                          Deactivated
                         </span>
                       )}
                     </td>
@@ -401,14 +426,14 @@ export default function AdminDashboardPage() {
                       {u.isActive ? (
                         <button
                           onClick={() => handleUserStatus(u.id, false)}
-                          className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-[11px] rounded-lg"
+                          className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs rounded-xl transition-colors"
                         >
                           Ban User
                         </button>
                       ) : (
                         <button
                           onClick={() => handleUserStatus(u.id, true)}
-                          className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-[11px] rounded-lg"
+                          className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs rounded-xl transition-colors"
                         >
                           Unban User
                         </button>
