@@ -12,6 +12,7 @@ import {
   Eye,
   EyeOff,
   Sparkles,
+  ExternalLink,
 } from 'lucide-react';
 
 export default function InternalReviewPage() {
@@ -105,13 +106,23 @@ export default function InternalReviewPage() {
             </p>
           </div>
 
-          <button
-            onClick={handleTagAllDemoSeeds}
-            className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5 self-start sm:self-auto"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>Auto-Flag All Seed Demo Data</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            <Link
+              href="/demo"
+              className="px-4 py-2.5 bg-brand-700 hover:bg-brand-600 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+            >
+              <Building className="w-4 h-4" />
+              <span>Browse Demo Section</span>
+            </Link>
+
+            <button
+              onClick={handleTagAllDemoSeeds}
+              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Auto-Flag Demo Seeds</span>
+            </button>
+          </div>
         </div>
 
         {actionMsg && (
@@ -152,7 +163,7 @@ export default function InternalReviewPage() {
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Demo / Test Listings</span>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl font-black text-slate-700">{data.demoListings.length}</span>
-            <span className="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded">Hidden</span>
+            <span className="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded">Demo Section</span>
           </div>
         </div>
       </div>
@@ -190,10 +201,18 @@ export default function InternalReviewPage() {
           <div className="space-y-6">
             {/* Demo Listings */}
             <div className="space-y-3">
-              <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                <Building className="w-4 h-4 text-slate-500" />
-                Isolated Demo / Test Listings ({data.demoListings.length})
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                  <Building className="w-4 h-4 text-slate-500" />
+                  Isolated Demo / Test Listings ({data.demoListings.length})
+                </h3>
+                <Link
+                  href="/demo"
+                  className="text-xs font-bold text-brand-700 hover:text-brand-900 flex items-center gap-1"
+                >
+                  Open in Demo Section UI <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+              </div>
 
               {data.demoListings.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-slate-200 p-6 text-center text-xs text-slate-400">

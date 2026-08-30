@@ -20,6 +20,17 @@ export async function GET(req: Request) {
     const maxRent = parseInt(url.searchParams.get('maxRent') || '999999', 10);
     const sortBy = url.searchParams.get('sortBy') || 'newest';
     const includeDemo = url.searchParams.get('includeDemo') === 'true';
+    const demoOnly = url.searchParams.get('demoOnly') === 'true';
+
+    // Demo filtering:
+    // - demoOnly=true: only returns isDemo = true
+    // - includeDemo=true: returns both
+    // - default: only returns isDemo = false (real data)
+    const demoFilter = demoOnly
+      ? { isDemo: true }
+      : includeDemo
+      ? {}
+      : { isDemo: false };
 
     const statusParam = url.searchParams.get('status');
     // Case-insensitive status filter; empty or 'ALL' returns all listings
@@ -34,7 +45,7 @@ export async function GET(req: Request) {
 
     const listings = await prisma.listing.findMany({
       where: {
-        ...(includeDemo ? {} : { isDemo: false }),
+        ...demoFilter,
         ...(statusFilter
           ? {
               OR: [
@@ -49,7 +60,7 @@ export async function GET(req: Request) {
           : {}),
         owner: {
           isActive: true,
-          ...(includeDemo ? {} : { isDemo: false }),
+          ...demoFilter,
           profile: {
             ...(school ? { school } : {}),
             ...(department ? { department } : {}),
