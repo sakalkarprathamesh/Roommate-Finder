@@ -4,8 +4,6 @@ import React from 'react';
 import {
   Shield,
   Mail,
-  UserX,
-  ExternalLink,
   HelpCircle,
   CheckCircle2,
 } from 'lucide-react';
@@ -17,11 +15,11 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Settings & Support</h1>
         <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-          Privacy controls, account safety, and official MIT-ADT support.
+          Privacy controls, account safety, and official Roomie support.
         </p>
       </div>
 
-      {/* Support Card (Section 47) */}
+      {/* Support Card */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-4">
         <div className="flex items-center gap-2 text-brand-900 font-bold text-sm">
           <HelpCircle className="w-5 h-5 text-brand-700" />
@@ -48,7 +46,7 @@ export default function SettingsPage() {
         </div>
 
         <p className="text-[11px] text-slate-400">
-          Platform built by <strong className="text-slate-700">{CREATOR_NAME}</strong> for MIT-ADT University students.
+          Roomie built by <strong className="text-slate-700">{CREATOR_NAME}</strong> for MIT-ADT University students.
         </p>
       </div>
 

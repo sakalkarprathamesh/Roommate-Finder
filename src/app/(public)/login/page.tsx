@@ -59,7 +59,7 @@ export default function LoginPage() {
           </div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">Student Login</h2>
           <p className="text-xs text-slate-500">
-            Sign in with your registered Gmail or MIT-ADT credentials
+            Sign in to Roomie with your registered Gmail or MIT-ADT credentials
           </p>
         </div>
 
@@ -122,7 +122,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-xs text-slate-500 pt-2 border-t border-slate-100">
-          New to MIT-ADT Roommate Finder?{' '}
+          New to Roomie?{' '}
           <Link href="/register" className="font-bold text-brand-900 hover:underline">
             Register now
           </Link>

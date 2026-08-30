@@ -125,11 +125,11 @@ export default function Navbar() {
                 <Building2 className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
-                <span className="font-extrabold text-base sm:text-lg tracking-tight text-slate-900">
-                  MIT-ADT <span className="text-brand-700 font-bold">Roommate</span>
+                <span className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 flex items-center gap-1.5">
+                  Roomie <span className="text-brand-800 font-bold text-[10px] sm:text-xs px-1.5 py-0.5 bg-brand-50 rounded-md border border-brand-200">MIT-ADT</span>
                 </span>
-                <span className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold -mt-1">
-                  Accommodation Finder
+                <span className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold -mt-0.5">
+                  Roommate Finder
                 </span>
               </div>
             </Link>

@@ -88,7 +88,7 @@ export async function POST(req: Request) {
       data: {
         userId: newUser.id,
         type: 'SYSTEM',
-        title: 'Welcome to MIT-ADT Roommate Finder!',
+        title: 'Welcome to Roomie!',
         message: 'Your student account is active. Start exploring accommodations or post your listing!',
         link: '/find',
       },

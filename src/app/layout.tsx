@@ -7,9 +7,9 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
 
 export const metadata: Metadata = {
-  title: 'MIT-ADT Roommate Finder | Student Accommodation & Roommate Discovery',
+  title: 'Roomie | MIT-ADT Student Accommodation & Roommate Finder',
   description:
-    'Find the right roommate, flatmate, room, or accommodation vacancy with fellow MIT-ADT University students.',
+    'Find the right roommate, flatmate, room, or accommodation vacancy with fellow MIT-ADT University students on Roomie.',
   icons: {
     icon: [
       { url: '/favicon.ico' },

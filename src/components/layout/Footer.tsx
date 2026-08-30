@@ -14,8 +14,8 @@ export default function Footer() {
               <div className="w-8 h-8 rounded-lg bg-brand-700 text-white font-bold flex items-center justify-center">
                 <Building2 className="w-4 h-4" />
               </div>
-              <span className="text-white font-black text-sm sm:text-base tracking-tight">
-                MIT-ADT Roommate Finder
+              <span className="text-white font-black text-base sm:text-lg tracking-tight">
+                Roomie <span className="text-brand-400 text-xs font-normal">MIT-ADT</span>
               </span>
             </div>
             <p className="text-xs text-slate-400 max-w-md leading-relaxed">
@@ -76,7 +76,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-6 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3 text-[11px] text-slate-500">
-          <p>© {new Date().getFullYear()} MIT-ADT Roommate Finder. Built by {CREATOR_NAME}.</p>
+          <p>© {new Date().getFullYear()} Roomie. Built by {CREATOR_NAME}.</p>
           <div className="flex items-center gap-4">
             <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-slate-300">
               Support: {SUPPORT_EMAIL}
