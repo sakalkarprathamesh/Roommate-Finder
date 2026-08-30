@@ -6,6 +6,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    id: 'welcome-and-guidance',
+    title: 'Student welcome & quick-start guide',
+    description:
+      'First-time visitors now receive a quick, lightweight walkthrough on registering, finding flatmates, and safely connecting with peers.',
+  },
+  {
     id: 'user-safety-reporting',
     title: 'Enhanced safety & listing reporting',
     description:
