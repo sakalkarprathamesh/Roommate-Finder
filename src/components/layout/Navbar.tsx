@@ -4,44 +4,61 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  Building2,
   Home,
   Search,
   PlusCircle,
   Inbox,
   LayoutDashboard,
+  Bell,
   User,
-  Settings,
   LogOut,
-  Shield,
   Menu,
   X,
   ChevronDown,
-  Bell,
+  Shield,
+  Settings,
   CheckCircle2,
-  Building2,
+  Clock,
+  Sparkles,
 } from 'lucide-react';
-import { SUPPORT_EMAIL } from '@/lib/constants';
 
-interface UserData {
+interface AuthUser {
   id: string;
   email: string;
   role: string;
+  isActive: boolean;
   profile?: {
     name: string;
-    profilePhotoUrl?: string | null;
+    phone?: string;
     school: string;
     department: string;
+    year: string;
+    studentId?: string;
     emailVerified: boolean;
+    studentVerified: boolean;
+    verificationStatus: string;
+    profilePhotoUrl?: string;
   };
+}
+
+interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  isRead: boolean;
+  createdAt: string;
+  link?: string;
 }
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const [user, setUser] = useState<UserData | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -57,29 +74,23 @@ export default function Navbar() {
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
+
+        // Fetch notifications if logged in
         if (data.user) {
-          fetchNotifications();
+          const nRes = await fetch('/api/notifications');
+          if (nRes.ok) {
+            const nData = await nRes.json();
+            setNotifications(nData.notifications || []);
+            setUnreadCount(nData.unreadCount || 0);
+          }
         }
       } else {
         setUser(null);
       }
     } catch {
-      setUser(null);
+      // silently handle
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchNotifications = async () => {
-    try {
-      const res = await fetch('/api/notifications');
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data.notifications || []);
-        setUnreadCount(data.unreadCount || 0);
-      }
-    } catch {
-      // silently handle
     }
   };
 
@@ -201,9 +212,13 @@ export default function Navbar() {
             {user?.role === 'admin' && (
               <Link
                 href="/admin"
-                className="px-3 py-2 rounded-xl text-xs font-bold bg-red-50 text-red-700 flex items-center gap-1.5 border border-red-200"
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                  pathname === '/admin'
+                    ? 'bg-brand-50 text-brand-900'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
               >
-                <Shield className="w-4 h-4 text-red-600" />
+                <Shield className="w-4 h-4 text-brand-700" />
                 Admin Dashboard
               </Link>
             )}
@@ -222,7 +237,7 @@ export default function Navbar() {
                 >
                   <Bell className="w-5 h-5" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
+                    <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-brand-700 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
@@ -260,18 +275,11 @@ export default function Navbar() {
                               !n.isRead ? 'bg-blue-50/60' : ''
                             }`}
                           >
-                            <div className="flex items-start gap-2">
-                              {!n.isRead && (
-                                <span className="w-2 h-2 mt-1 rounded-full bg-brand-700 flex-shrink-0" />
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-bold text-slate-900">{n.title}</p>
-                                <p className="text-xs text-slate-600 line-clamp-2 mt-0.5">{n.message}</p>
-                                <span className="text-[10px] text-slate-400 mt-1 block">
-                                  {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                              </div>
-                            </div>
+                            <p className="font-bold text-slate-900 text-xs">{n.title}</p>
+                            <p className="text-[11px] text-slate-600 line-clamp-2 mt-0.5">{n.message}</p>
+                            <span className="text-[10px] text-slate-400 mt-1 block">
+                              {new Date(n.createdAt).toLocaleDateString()}
+                            </span>
                           </Link>
                         ))
                       )}
@@ -281,19 +289,19 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* User Profile Menu */}
+            {/* Profile Avatar / User Dropdown */}
             {user ? (
               <div className="relative" ref={userMenuRef}>
                 <button
                   type="button"
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 transition-colors"
+                  className="flex items-center gap-2 p-1.5 rounded-2xl hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200"
                 >
-                  <div className="w-9 h-9 rounded-full bg-brand-100 border border-brand-200 flex items-center justify-center text-brand-900 font-bold text-sm overflow-hidden">
+                  <div className="w-8 h-8 rounded-full bg-brand-900 text-white flex items-center justify-center text-xs font-bold shadow-2xs overflow-hidden">
                     {user.profile?.profilePhotoUrl ? (
                       <img
                         src={user.profile.profilePhotoUrl}
-                        alt={user.profile.name || 'User'}
+                        alt="Profile"
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -349,10 +357,10 @@ export default function Navbar() {
                         <Link
                           href="/admin"
                           onClick={() => setShowUserMenu(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                         >
-                          <Shield className="w-4 h-4 text-red-500" />
-                          Admin Portal
+                          <Shield className="w-4 h-4 text-brand-700" />
+                          Admin Dashboard
                         </Link>
                       )}
 
@@ -452,6 +460,16 @@ export default function Navbar() {
                 >
                   Settings
                 </Link>
+
+                {user.role === 'admin' && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="block px-3 py-2 rounded-lg text-sm font-bold text-brand-700 hover:bg-slate-50"
+                  >
+                    Admin Dashboard
+                  </Link>
+                )}
               </>
             ) : (
               <>
