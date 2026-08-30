@@ -16,8 +16,16 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { MIT_SCHOOLS, MIT_DEPARTMENTS, ACADEMIC_YEARS } from '@/lib/constants';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function RegisterPage() {
+  usePageMeta({
+    title: 'Student Registration | MIT-ADT Roommate Finder',
+    description:
+      'Create your verified MIT-ADT student account to find roommates and shared flats near campus.',
+    noindex: false,
+  });
+
   const router = useRouter();
 
   const [formData, setFormData] = useState({

@@ -18,8 +18,15 @@ import {
   Sparkles,
   ExternalLink,
 } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function AdminDashboardPage() {
+  usePageMeta({
+    title: 'Admin Dashboard | MIT-ADT Roommate Finder',
+    description: 'Platform administration and moderation portal.',
+    noindex: true,
+  });
+
   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'reports' | 'listings' | 'users'>('reports');

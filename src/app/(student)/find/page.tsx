@@ -22,8 +22,16 @@ import {
   ROOM_TYPES,
   PUNE_AREAS,
 } from '@/lib/constants';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 function FindContent() {
+  usePageMeta({
+    title: 'Find Roommates & Rooms | MIT-ADT Roommate Finder',
+    description:
+      'Search and filter verified student accommodations, flat vacancies, and compatible roommates near MIT-ADT University Pune.',
+    noindex: false,
+  });
+
   const searchParams = useSearchParams();
 
   const [filters, setFilters] = useState({

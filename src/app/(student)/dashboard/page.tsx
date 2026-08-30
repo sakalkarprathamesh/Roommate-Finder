@@ -22,8 +22,16 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { LISTING_TYPES } from '@/lib/constants';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function StudentDashboard() {
+  usePageMeta({
+    title: 'Dashboard | MIT-ADT Roommate Finder',
+    description:
+      'Manage your student accommodation listings, connection requests, and occupied room history.',
+    noindex: true,
+  });
+
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [listings, setListings] = useState<any[]>([]);

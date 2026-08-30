@@ -19,8 +19,15 @@ import {
   ROOM_TYPES,
   PUNE_AREAS,
 } from '@/lib/constants';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function DemoListingsPage() {
+  usePageMeta({
+    title: 'Demo Listings | MIT-ADT Roommate Finder',
+    description: 'Sample demo accommodation listings.',
+    noindex: true,
+  });
+
   const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 

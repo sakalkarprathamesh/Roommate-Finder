@@ -14,8 +14,15 @@ import {
 } from 'lucide-react';
 import { MIT_SCHOOLS, MIT_DEPARTMENTS, ACADEMIC_YEARS } from '@/lib/constants';
 import { CHANGELOG_ENTRIES } from '@/lib/changelog';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function ProfilePage() {
+  usePageMeta({
+    title: 'Student Profile | MIT-ADT Roommate Finder',
+    description: 'View and edit your MIT-ADT student profile.',
+    noindex: true,
+  });
+
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);

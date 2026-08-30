@@ -3,8 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Bell, CheckCheck, UserCheck, MessageSquare, Sparkles, ArrowRight } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function NotificationsPage() {
+  usePageMeta({
+    title: 'Notifications | MIT-ADT Roommate Finder',
+    description: 'View your notifications and accommodation updates.',
+    noindex: true,
+  });
+
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);

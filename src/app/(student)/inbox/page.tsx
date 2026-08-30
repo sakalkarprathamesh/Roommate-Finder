@@ -15,8 +15,16 @@ import {
   Compass,
 } from 'lucide-react';
 import ContactRequestCard from '@/components/inbox/ContactRequestCard';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function InboxPage() {
+  usePageMeta({
+    title: 'Inbox & Requests | MIT-ADT Roommate Finder',
+    description:
+      'View student contact requests and private messages on MIT-ADT Roommate Finder.',
+    noindex: true,
+  });
+
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'connected'>('received');
   const [data, setData] = useState<any>({ received: [], sent: [], connected: [] });

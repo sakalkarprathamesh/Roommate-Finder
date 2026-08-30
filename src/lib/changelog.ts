@@ -6,6 +6,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    id: 'seo-and-sitemap',
+    title: 'Search optimization & verified sitemap',
+    description:
+      'Added public robots.txt and sitemap.xml indexing rules, descriptive page titles, and private account protection against search engine indexing.',
+  },
+  {
     id: 'welcome-and-guidance',
     title: 'Student welcome & quick-start guide',
     description:

@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /find
+Allow: /post
+Allow: /login
+Allow: /register
+
+# Account-gated pages
+Disallow: /dashboard
+Disallow: /inbox
+Disallow: /settings
+Disallow: /admin
+Disallow: /profile
+
+Sitemap: https://roommatefinder-pi.vercel.app/sitemap.xml

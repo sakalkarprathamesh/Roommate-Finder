@@ -14,8 +14,15 @@ import {
   Sparkles,
   ExternalLink,
 } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function InternalReviewPage() {
+  usePageMeta({
+    title: 'Internal Review | MIT-ADT Roommate Finder',
+    description: 'Internal testing and review portal.',
+    noindex: true,
+  });
+
   const [data, setData] = useState<{
     realUsers: any[];
     demoUsers: any[];

@@ -1,11 +1,24 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Building2, Shield, Mail, Lock, ArrowLeft } from 'lucide-react';
 import { CREATOR_NAME, SUPPORT_EMAIL } from '@/lib/constants';
+import SEO from '@/components/common/SEO';
+
+export const metadata: Metadata = {
+  title: 'About | MIT-ADT Roommate Finder',
+  description:
+    'Learn about Roomie, the verified student accommodation and roommate discovery network for MIT-ADT University Pune.',
+};
 
 export default function AboutPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-8">
+      <SEO
+        title="About | MIT-ADT Roommate Finder"
+        description="Learn about Roomie, the verified student accommodation and roommate discovery network for MIT-ADT University Pune."
+        noindex={false}
+      />
       <Link
         href="/"
         className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-brand-900 transition-colors"
@@ -28,40 +41,31 @@ export default function AboutPage() {
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
-        <div className="space-y-3">
-          <h2 className="text-base font-bold text-slate-900">Our Core Mission</h2>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Students at MIT-ADT University frequently rely on chaotic WhatsApp groups, word-of-mouth, or unvetted listings to find flat vacancies or roommates. <strong>Roomie</strong> unifies accommodation discovery into a trusted platform with verified academic credentials and protected contact sharing.
+        <div className="space-y-2">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900">Platform Mission</h2>
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            Roomie is designed to help students of MIT-ADT University (Pune) connect for shared rooms, flats, and PG accommodations near campus. We eliminate the chaos of unverified WhatsApp groups, brokers, and untrusted listings.
           </p>
         </div>
 
-        <div className="space-y-3 pt-4 border-t border-slate-100">
-          <h2 className="text-base font-bold text-slate-900">Strict Privacy Principles</h2>
-          <ul className="space-y-2 text-xs text-slate-600">
-            <li className="flex items-start gap-2">
-              <Lock className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-              <span>Personal Gmail addresses, phone numbers, and student IDs remain hidden from public search.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Lock className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-              <span>Private contacts are only unlocked when a student and listing owner mutually accept a contact request.</span>
-            </li>
-          </ul>
+        <div className="border-t border-slate-100 pt-6 space-y-2">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900">Student Privacy & Verification</h2>
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            Contact numbers and full profiles are only shared after a mutual connection request is accepted by both students. Your contact data remains protected and is never sold to commercial entities.
+          </p>
         </div>
 
-        <div className="space-y-2 pt-4 border-t border-slate-100 text-xs">
-          <div className="font-bold text-slate-900">Creator & Attribution</div>
-          <p className="text-slate-600">
-            Built by <strong className="text-slate-800">{CREATOR_NAME}</strong>
+        <div className="border-t border-slate-100 pt-6 space-y-2">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900">Contact & Support</h2>
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            Have questions, feedback, or need help? Email our student support desk directly:
           </p>
-          <div className="font-bold text-slate-900 pt-2">Official Support</div>
-          <a
-            href={`mailto:${SUPPORT_EMAIL}`}
-            className="inline-flex items-center gap-1.5 text-brand-700 font-bold hover:underline"
-          >
-            <Mail className="w-3.5 h-3.5" />
-            {SUPPORT_EMAIL}
-          </a>
+          <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900">
+            <Mail className="w-4 h-4 text-brand-700" />
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:underline text-brand-900">
+              {SUPPORT_EMAIL}
+            </a>
+          </div>
         </div>
       </div>
     </div>

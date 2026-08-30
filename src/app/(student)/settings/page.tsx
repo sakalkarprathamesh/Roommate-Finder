@@ -8,8 +8,15 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { CREATOR_NAME, SUPPORT_EMAIL } from '@/lib/constants';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function SettingsPage() {
+  usePageMeta({
+    title: 'Account Settings | MIT-ADT Roommate Finder',
+    description: 'Manage your account preferences and settings.',
+    noindex: true,
+  });
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <div>

@@ -8,9 +8,26 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
 
 export const metadata: Metadata = {
-  title: 'Roomie | MIT-ADT Student Accommodation & Roommate Finder',
+  metadataBase: new URL('https://roommatefinder-pi.vercel.app'),
+  title: {
+    default: 'MIT-ADT Roommate Finder | Find Roommates & Rooms Near MIT-ADT',
+    template: '%s | MIT-ADT Roommate Finder',
+  },
   description:
-    'Find the right roommate, flatmate, room, or accommodation vacancy with fellow MIT-ADT University students on Roomie.',
+    'Find verified roommates, shared flats, and student room vacancies near MIT-ADT University, Pune. Safe, student-only platform for MIT-ADT students.',
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    title: 'MIT-ADT Roommate Finder | Find Roommates & Rooms Near MIT-ADT',
+    description:
+      'Find verified roommates, shared flats, and student room vacancies near MIT-ADT University, Pune. Safe, student-only platform for MIT-ADT students.',
+    url: 'https://roommatefinder-pi.vercel.app',
+    siteName: 'MIT-ADT Roommate Finder',
+    locale: 'en_IN',
+    type: 'website',
+  },
   icons: {
     icon: [
       { url: '/favicon.ico' },

@@ -22,6 +22,7 @@ import {
   X,
 } from 'lucide-react';
 import { LISTING_TYPES, REPORT_REASONS } from '@/lib/constants';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function ListingDetailPage() {
   const params = useParams();
@@ -29,6 +30,16 @@ export default function ListingDetailPage() {
   const listingId = params?.id as string;
 
   const [listing, setListing] = useState<any>(null);
+
+  usePageMeta({
+    title: listing?.title
+      ? `${listing.title} | MIT-ADT Roommate Finder`
+      : 'Listing Details | MIT-ADT Roommate Finder',
+    description:
+      listing?.description?.slice(0, 160) ||
+      'View student accommodation vacancy details on MIT-ADT Roommate Finder.',
+    noindex: false,
+  });
   const [loading, setLoading] = useState(true);
 
   // Request Contact Modal

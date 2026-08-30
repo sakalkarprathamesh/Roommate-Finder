@@ -5,8 +5,15 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import ListingForm from '@/components/listings/ListingForm';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function EditListingPage() {
+  usePageMeta({
+    title: 'Edit Listing | MIT-ADT Roommate Finder',
+    description: 'Edit your accommodation listing.',
+    noindex: true,
+  });
+
   const params = useParams();
   const listingId = params?.id as string;
   const [listing, setListing] = useState<any>(null);

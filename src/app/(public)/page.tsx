@@ -15,8 +15,16 @@ import {
   Sparkles,
 } from 'lucide-react';
 import ListingCard from '@/components/listings/ListingCard';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function HomePage() {
+  usePageMeta({
+    title: 'MIT-ADT Roommate Finder | Find Roommates & Rooms Near MIT-ADT',
+    description:
+      'Find verified roommates, shared flats, and student room vacancies near MIT-ADT University, Pune. Safe, student-only platform for MIT-ADT students.',
+    noindex: false,
+  });
+
   const [featuredListings, setFeaturedListings] = useState<any[]>([]);
   const [sampleListings, setSampleListings] = useState<any[]>([]);
   const [stats, setStats] = useState<{

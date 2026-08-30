@@ -11,8 +11,16 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function LoginPage() {
+  usePageMeta({
+    title: 'Login | MIT-ADT Roommate Finder',
+    description:
+      'Log in to your MIT-ADT Roommate Finder account to connect with flatmates and manage your listings.',
+    noindex: false,
+  });
+
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
