@@ -11,12 +11,12 @@ export async function GET(req: Request) {
   }
 
   try {
-    const [totalUsers, activeListings, pendingReports, pendingVerifications, totalRequests, acceptedRequests] =
+    const [totalUsers, activeListings, totalOccupied, pendingReports, totalRequests, acceptedRequests] =
       await Promise.all([
-        prisma.user.count({ where: { role: 'student' } }),
+        prisma.user.count(),
         prisma.listing.count({ where: { status: 'ACTIVE' } }),
+        prisma.listing.count({ where: { OR: [{ status: 'OCCUPIED' }, { status: 'FILLED' }] } }),
         prisma.report.count({ where: { status: 'PENDING' } }),
-        prisma.profile.count({ where: { verificationStatus: 'pending', role: 'student' } }),
         prisma.contactRequest.count(),
         prisma.contactRequest.count({ where: { status: 'ACCEPTED' } }),
       ]);
@@ -25,8 +25,8 @@ export async function GET(req: Request) {
       stats: {
         totalUsers,
         activeListings,
+        totalOccupied,
         pendingReports,
-        pendingVerifications,
         totalRequests,
         acceptedRequests,
       },

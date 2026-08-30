@@ -6,6 +6,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    id: 'user-safety-reporting',
+    title: 'Enhanced safety & listing reporting',
+    description:
+      'You can now confidentially report suspicious listings or inappropriate messages in chat to keep our community safe.',
+  },
+  {
     id: 'verified-live-listings',
     title: 'Verified live student listings',
     description:
