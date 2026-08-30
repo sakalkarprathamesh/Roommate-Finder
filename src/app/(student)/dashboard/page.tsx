@@ -19,6 +19,7 @@ import {
   Home,
   MessageSquare,
   History,
+  Sparkles,
 } from 'lucide-react';
 import { LISTING_TYPES } from '@/lib/constants';
 
@@ -32,9 +33,10 @@ export default function StudentDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const [profRes, reqRes] = await Promise.all([
+      const [profRes, reqRes, listRes] = await Promise.all([
         fetch('/api/profile'),
         fetch('/api/contact-requests'),
+        fetch('/api/listings?status=ALL'),
       ]);
 
       if (profRes.status === 401 || reqRes.status === 401) {
@@ -42,9 +44,11 @@ export default function StudentDashboard() {
         return;
       }
 
+      let currentUserId = '';
       if (profRes.ok) {
         const pData = await profRes.json();
         setProfile(pData.profile);
+        currentUserId = pData.profile?.userId || pData.profile?.id || '';
       }
 
       if (reqRes.ok) {
@@ -52,14 +56,10 @@ export default function StudentDashboard() {
         setRequests(rData);
       }
 
-      const listRes = await fetch('/api/listings?status=');
       if (listRes.ok) {
         const lData = await listRes.json();
-        if (profile?.userId) {
-          setListings(lData.listings?.filter((l: any) => l.owner.id === profile.userId) || []);
-        } else {
-          setListings(lData.listings || []);
-        }
+        const allListings = lData.listings || [];
+        setListings(allListings);
       }
     } catch {
       // handle error
@@ -114,23 +114,37 @@ export default function StudentDashboard() {
     }
   };
 
-  const userListings = listings.filter((l) =>
-    profile?.userId ? l.ownerId === profile.userId || l.owner?.id === profile.userId : true
-  );
+  const currentUserId = profile?.userId || profile?.id;
+
+  // Filter listings where current user is either the listing OWNER or the matched OCCUPIED PARTNER
+  const userListings = listings.filter((l) => {
+    if (!currentUserId) return true;
+    const isOwner = l.ownerId === currentUserId || l.owner?.id === currentUserId;
+    const isOccupiedPartner =
+      l.occupiedPartnerId === currentUserId ||
+      l.occupiedInitiatorId === currentUserId;
+    return isOwner || isOccupiedPartner;
+  });
 
   // Tab 1: ONLY Active Listings (default view)
   const activeListings = userListings.filter(
-    (l) => l.status === 'ACTIVE' && new Date(l.expiresAt) >= new Date()
+    (l) =>
+      (l.status?.toUpperCase() === 'ACTIVE') &&
+      new Date(l.expiresAt) >= new Date()
   );
 
-  // Tab 2: Occupied & Past Listings
-  const occupiedListings = userListings.filter((l) => l.status === 'OCCUPIED');
+  // Tab 2: Occupied & Past Listings (case-insensitive)
+  const occupiedListings = userListings.filter(
+    (l) => l.status?.toUpperCase() === 'OCCUPIED'
+  );
+
   const pastOtherListings = userListings.filter(
     (l) =>
-      l.status === 'FILLED' ||
-      l.status === 'EXPIRED' ||
-      (l.status === 'ACTIVE' && new Date(l.expiresAt) < new Date())
+      l.status?.toUpperCase() === 'FILLED' ||
+      l.status?.toUpperCase() === 'EXPIRED' ||
+      (l.status?.toUpperCase() === 'ACTIVE' && new Date(l.expiresAt) < new Date())
   );
+
   const occupiedAndPastListings = [...occupiedListings, ...pastOtherListings];
 
   const pendingReceived = (requests.received || []).filter((r: any) => r.status === 'PENDING');
@@ -213,7 +227,7 @@ export default function StudentDashboard() {
         </Link>
       </div>
 
-      {/* UPDATE 2: Separated Dashboard Sections (Active Listings vs Occupied / Past Listings) */}
+      {/* Separated Dashboard Sections (Active Listings vs Occupied / Past Listings) */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h2 className="text-lg sm:text-xl font-black text-slate-900">My Accommodation Listings</h2>
@@ -326,9 +340,12 @@ export default function StudentDashboard() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {occupiedAndPastListings.map((l) => {
-                const isOccupied = l.status === 'OCCUPIED';
-                const isExpired = l.status === 'EXPIRED' || (l.status === 'ACTIVE' && new Date(l.expiresAt) < new Date());
-                const isFilled = l.status === 'FILLED';
+                const isOccupied = l.status?.toUpperCase() === 'OCCUPIED';
+                const isExpired =
+                  l.status?.toUpperCase() === 'EXPIRED' ||
+                  (l.status?.toUpperCase() === 'ACTIVE' && new Date(l.expiresAt) < new Date());
+                const isFilled = l.status?.toUpperCase() === 'FILLED';
+                const isOwner = l.ownerId === currentUserId || l.owner?.id === currentUserId;
 
                 return (
                   <div key={l.id} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-2xs">
@@ -336,8 +353,9 @@ export default function StudentDashboard() {
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           {isOccupied ? (
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-slate-900 text-white rounded">
-                              Occupied
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-slate-900 text-white rounded flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              Occupied Space
                             </span>
                           ) : isFilled ? (
                             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-slate-100 text-slate-700 rounded">
@@ -351,26 +369,38 @@ export default function StudentDashboard() {
 
                           {isOccupied && l.occupiedConfirmedAt && (
                             <span className="text-[11px] text-slate-400">
-                              Marked on {new Date(l.occupiedConfirmedAt).toLocaleDateString()}
+                              Confirmed {new Date(l.occupiedConfirmedAt).toLocaleDateString()}
                             </span>
                           )}
                         </div>
 
                         <h4 className="font-bold text-slate-900 text-sm mt-1">{l.title}</h4>
-                        <p className="text-xs text-slate-500 mt-0.5">{l.location} • ₹{l.rent.toLocaleString('en-IN')}/mo</p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {l.location} • ₹{l.rent.toLocaleString('en-IN')}/mo
+                          {!isOwner && (
+                            <span className="ml-1 text-emerald-700 font-semibold">• Matched Roommate</span>
+                          )}
+                        </p>
                       </div>
                     </div>
 
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                       {isOccupied ? (
-                        /* Owner Reopen for Occupied Listings */
-                        <button
-                          onClick={() => handleOccupyAction(l.id, 'reopen')}
-                          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5 text-blue-700" />
-                          Reopen this listing
-                        </button>
+                        isOwner ? (
+                          /* Owner Reopen for Occupied Listings */
+                          <button
+                            onClick={() => handleOccupyAction(l.id, 'reopen')}
+                            className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5 text-blue-700" />
+                            Reopen this listing
+                          </button>
+                        ) : (
+                          <span className="text-xs text-emerald-800 font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            Connected & Confirmed
+                          </span>
+                        )
                       ) : isExpired ? (
                         <button
                           onClick={() => handleStatusAction(l.id, 'renew')}
@@ -388,13 +418,15 @@ export default function StudentDashboard() {
                         </button>
                       )}
 
-                      <button
-                        onClick={() => handleDelete(l.id)}
-                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                        title="Delete Listing"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {isOwner && (
+                        <button
+                          onClick={() => handleDelete(l.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          title="Delete Listing"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

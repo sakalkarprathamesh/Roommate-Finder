@@ -18,15 +18,23 @@ export async function GET(req: Request) {
     const year = url.searchParams.get('year') || '';
     const minRent = parseInt(url.searchParams.get('minRent') || '0', 10);
     const maxRent = parseInt(url.searchParams.get('maxRent') || '999999', 10);
-    const status = url.searchParams.get('status') || 'ACTIVE';
     const sortBy = url.searchParams.get('sortBy') || 'newest';
+
+    const statusParam = url.searchParams.get('status');
+    // If status is empty string, 'ALL', or 'all', do not filter by status so all statuses are returned
+    const statusFilter =
+      statusParam === null
+        ? 'ACTIVE'
+        : statusParam.trim() === '' || statusParam.toUpperCase() === 'ALL'
+        ? undefined
+        : statusParam.toUpperCase();
 
     const now = new Date();
 
     const listings = await prisma.listing.findMany({
       where: {
-        status,
-        ...(status === 'ACTIVE' ? { expiresAt: { gte: now } } : {}),
+        ...(statusFilter ? { status: statusFilter } : {}),
+        ...(statusFilter === 'ACTIVE' ? { expiresAt: { gte: now } } : {}),
         owner: {
           isActive: true,
           profile: {
