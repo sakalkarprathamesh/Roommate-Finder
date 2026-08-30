@@ -18,6 +18,15 @@ import ListingCard from '@/components/listings/ListingCard';
 
 export default function HomePage() {
   const [featuredListings, setFeaturedListings] = useState<any[]>([]);
+  const [stats, setStats] = useState<{
+    occupiedListingsCount: number;
+    matchedStudentsCount: number;
+    activeListingsCount: number;
+  }>({
+    occupiedListingsCount: 0,
+    matchedStudentsCount: 0,
+    activeListingsCount: 0,
+  });
 
   useEffect(() => {
     fetch('/api/listings?status=ACTIVE')
@@ -25,6 +34,20 @@ export default function HomePage() {
       .then((data) => {
         if (data.listings) {
           setFeaturedListings(data.listings.slice(0, 4));
+        }
+      })
+      .catch(() => {});
+
+    // Fetch dynamic public matched stats
+    fetch('/api/stats')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data) {
+          setStats({
+            occupiedListingsCount: data.occupiedListingsCount || 0,
+            matchedStudentsCount: data.matchedStudentsCount || 0,
+            activeListingsCount: data.activeListingsCount || 0,
+          });
         }
       })
       .catch(() => {});
@@ -73,6 +96,27 @@ export default function HomePage() {
               <PlusCircle className="w-4 h-4 text-indigo-700" />
               <span>Post a Listing</span>
             </Link>
+          </div>
+
+          {/* UPDATE 1: Prominent Public Match Counter Highlight */}
+          <div className="pt-2 flex items-center justify-center">
+            <div className="bg-white rounded-2xl border border-slate-200 px-5 py-3 shadow-2xs inline-flex items-center gap-3.5 text-left">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center font-bold flex-shrink-0">
+                <Sparkles className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div>
+                <div className="text-xs sm:text-sm font-extrabold text-slate-900">
+                  {stats.occupiedListingsCount > 0
+                    ? `${stats.matchedStudentsCount}+ Students Successfully Matched`
+                    : 'Be one of our first successful matches!'}
+                </div>
+                <div className="text-[11px] text-slate-500 font-medium">
+                  {stats.occupiedListingsCount > 0
+                    ? `${stats.occupiedListingsCount} spaces confirmed occupied across MIT-ADT campuses`
+                    : 'Discover verified student flatmates and shared rooms safely'}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -162,9 +206,9 @@ export default function HomePage() {
             {/* Step 4 */}
             <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-3">
               <span className="text-2xl font-black text-brand-700">04</span>
-              <h3 className="font-bold text-slate-900 text-sm sm:text-base">Connect after approval</h3>
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base">Connect & confirm occupancy</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Once the listing owner accepts, phone number and email are unlocked for direct contact.
+                Chat privately, share contact details, and mutually confirm when the space is occupied.
               </p>
             </div>
           </div>
@@ -183,7 +227,7 @@ export default function HomePage() {
               &ldquo;Your contact information stays private until you choose to share it.&rdquo;
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-              We never publicly display your phone number, Gmail address, or exact residential address. Private contacts are only unlocked when you mutually accept a student&apos;s request.
+              We never publicly display your phone number, Gmail address, or exact residential address. Private contacts and chat are only unlocked when you mutually accept a student&apos;s request.
             </p>
           </div>
 

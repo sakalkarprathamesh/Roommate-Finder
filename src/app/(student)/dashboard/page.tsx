@@ -18,6 +18,7 @@ import {
   Calendar,
   Home,
   MessageSquare,
+  History,
 } from 'lucide-react';
 import { LISTING_TYPES } from '@/lib/constants';
 
@@ -27,7 +28,7 @@ export default function StudentDashboard() {
   const [listings, setListings] = useState<any[]>([]);
   const [requests, setRequests] = useState<any>({ received: [], sent: [], connected: [] });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'active' | 'occupied' | 'filled' | 'expired'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'occupied_past'>('active');
 
   const fetchDashboardData = async () => {
     try {
@@ -113,11 +114,24 @@ export default function StudentDashboard() {
     }
   };
 
-  const userListings = listings.filter((l) => profile?.userId ? l.ownerId === profile.userId || l.owner?.id === profile.userId : true);
-  const activeListings = userListings.filter((l) => l.status === 'ACTIVE' && new Date(l.expiresAt) >= new Date());
+  const userListings = listings.filter((l) =>
+    profile?.userId ? l.ownerId === profile.userId || l.owner?.id === profile.userId : true
+  );
+
+  // Tab 1: ONLY Active Listings (default view)
+  const activeListings = userListings.filter(
+    (l) => l.status === 'ACTIVE' && new Date(l.expiresAt) >= new Date()
+  );
+
+  // Tab 2: Occupied & Past Listings
   const occupiedListings = userListings.filter((l) => l.status === 'OCCUPIED');
-  const filledListings = userListings.filter((l) => l.status === 'FILLED');
-  const expiredListings = userListings.filter((l) => l.status === 'EXPIRED' || (l.status === 'ACTIVE' && new Date(l.expiresAt) < new Date()));
+  const pastOtherListings = userListings.filter(
+    (l) =>
+      l.status === 'FILLED' ||
+      l.status === 'EXPIRED' ||
+      (l.status === 'ACTIVE' && new Date(l.expiresAt) < new Date())
+  );
+  const occupiedAndPastListings = [...occupiedListings, ...pastOtherListings];
 
   const pendingReceived = (requests.received || []).filter((r: any) => r.status === 'PENDING');
   const connectedList = requests.connected || [];
@@ -153,13 +167,13 @@ export default function StudentDashboard() {
       {/* KPI Overview Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-1">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">My Listings</span>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Listings</span>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl sm:text-3xl font-black text-slate-900">
               {activeListings.length}
             </span>
             <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
-              Active
+              Available Now
             </span>
           </div>
         </div>
@@ -199,48 +213,38 @@ export default function StudentDashboard() {
         </Link>
       </div>
 
-      {/* Listings Management Tabs */}
+      {/* UPDATE 2: Separated Dashboard Sections (Active Listings vs Occupied / Past Listings) */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h2 className="text-lg sm:text-xl font-black text-slate-900">My Accommodation Listings</h2>
 
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto">
+          <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl">
             <button
               onClick={() => setActiveTab('active')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
-                activeTab === 'active' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeTab === 'active'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Active ({activeListings.length})
+              <Building className="w-3.5 h-3.5 text-brand-700" />
+              Active Listings ({activeListings.length})
             </button>
             <button
-              onClick={() => setActiveTab('occupied')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
-                activeTab === 'occupied' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
+              onClick={() => setActiveTab('occupied_past')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeTab === 'occupied_past'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Occupied ({occupiedListings.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('filled')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
-                activeTab === 'filled' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
-              }`}
-            >
-              Filled ({filledListings.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('expired')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
-                activeTab === 'expired' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
-              }`}
-            >
-              Expired ({expiredListings.length})
+              <History className="w-3.5 h-3.5 text-slate-500" />
+              Occupied / Past Listings ({occupiedAndPastListings.length})
             </button>
           </div>
         </div>
 
-        {/* Current Tab Listings List */}
+        {/* SECTION 1: Active Listings (Default View) */}
         {loading ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 text-xs">
             Loading your listings...
@@ -249,11 +253,11 @@ export default function StudentDashboard() {
           activeListings.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-3">
               <Building className="w-8 h-8 text-slate-300 mx-auto" />
-              <p className="text-xs font-bold text-slate-800">No active listings.</p>
-              <p className="text-xs text-slate-500">Create a listing to find roommates or flat vacancies!</p>
+              <p className="text-xs font-bold text-slate-800">No active listings currently.</p>
+              <p className="text-xs text-slate-500">Post a new accommodation listing to find flatmates or fill vacancies!</p>
               <Link
                 href="/listings/new"
-                className="inline-block px-4 py-2 bg-brand-900 text-white font-bold text-xs rounded-xl shadow-xs"
+                className="inline-block px-4 py-2 bg-brand-900 text-white font-bold text-xs rounded-xl shadow-xs hover:bg-brand-800"
               >
                 + Create a Listing
               </Link>
@@ -313,102 +317,90 @@ export default function StudentDashboard() {
               ))}
             </div>
           )
-        ) : activeTab === 'occupied' ? (
-          occupiedListings.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 text-xs">
-              No occupied listings yet. Listings confirmed as occupied with roommates will appear here.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {occupiedListings.map((l) => (
-                <div key={l.id} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-2xs">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-slate-900 text-white rounded">
-                          Occupied
-                        </span>
-                        {l.occupiedConfirmedAt && (
-                          <span className="text-[11px] text-slate-400">
-                            Marked on {new Date(l.occupiedConfirmedAt).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                      <h4 className="font-bold text-slate-900 text-sm mt-1">{l.title}</h4>
-                      <p className="text-xs text-slate-500 mt-0.5">{l.location} • ₹{l.rent.toLocaleString('en-IN')}/mo</p>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
-                    <button
-                      onClick={() => handleOccupyAction(l.id, 'reopen')}
-                      className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5 text-blue-700" />
-                      Reopen this listing
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )
-        ) : activeTab === 'filled' ? (
-          filledListings.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 text-xs">
-              No filled listings.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {filledListings.map((l) => (
-                <div key={l.id} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 opacity-80">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-slate-100 text-slate-700 rounded">
-                        Filled
-                      </span>
-                      <h4 className="font-bold text-slate-900 text-sm mt-1">{l.title}</h4>
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
-                    <button
-                      onClick={() => handleStatusAction(l.id, 'mark_active')}
-                      className="px-3 py-1.5 bg-brand-50 text-brand-900 text-xs font-bold rounded-lg"
-                    >
-                      Re-open as Active
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )
-        ) : expiredListings.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 text-xs">
-            No expired listings.
-          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {expiredListings.map((l) => (
-              <div key={l.id} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-red-50 text-red-700 rounded border border-red-200">
-                      Expired
-                    </span>
-                    <h4 className="font-bold text-slate-900 text-sm mt-1">{l.title}</h4>
+          /* SECTION 2: Occupied / Past Listings Tab */
+          occupiedAndPastListings.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 text-xs">
+              No occupied or past listings found. Once listings reach occupied status with a roommate, they will be archived here.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {occupiedAndPastListings.map((l) => {
+                const isOccupied = l.status === 'OCCUPIED';
+                const isExpired = l.status === 'EXPIRED' || (l.status === 'ACTIVE' && new Date(l.expiresAt) < new Date());
+                const isFilled = l.status === 'FILLED';
+
+                return (
+                  <div key={l.id} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-2xs">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {isOccupied ? (
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-slate-900 text-white rounded">
+                              Occupied
+                            </span>
+                          ) : isFilled ? (
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-slate-100 text-slate-700 rounded">
+                              Filled
+                            </span>
+                          ) : (
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-red-50 text-red-700 rounded border border-red-200">
+                              Expired
+                            </span>
+                          )}
+
+                          {isOccupied && l.occupiedConfirmedAt && (
+                            <span className="text-[11px] text-slate-400">
+                              Marked on {new Date(l.occupiedConfirmedAt).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+
+                        <h4 className="font-bold text-slate-900 text-sm mt-1">{l.title}</h4>
+                        <p className="text-xs text-slate-500 mt-0.5">{l.location} • ₹{l.rent.toLocaleString('en-IN')}/mo</p>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                      {isOccupied ? (
+                        /* Owner Reopen for Occupied Listings */
+                        <button
+                          onClick={() => handleOccupyAction(l.id, 'reopen')}
+                          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5 text-blue-700" />
+                          Reopen this listing
+                        </button>
+                      ) : isExpired ? (
+                        <button
+                          onClick={() => handleStatusAction(l.id, 'renew')}
+                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg flex items-center gap-1"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          Renew for 30 Days
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleStatusAction(l.id, 'mark_active')}
+                          className="px-3 py-1.5 bg-brand-50 text-brand-900 text-xs font-bold rounded-lg"
+                        >
+                          Re-open as Active
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => handleDelete(l.id)}
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                        title="Delete Listing"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
-                  <button
-                    onClick={() => handleStatusAction(l.id, 'renew')}
-                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg flex items-center gap-1"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    Renew for 30 Days
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )
         )}
       </div>
 
