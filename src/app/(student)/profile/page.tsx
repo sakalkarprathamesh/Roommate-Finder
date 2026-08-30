@@ -10,8 +10,10 @@ import {
   Mail,
   Phone,
   GraduationCap,
+  Sparkles,
 } from 'lucide-react';
 import { MIT_SCHOOLS, MIT_DEPARTMENTS, ACADEMIC_YEARS } from '@/lib/constants';
+import { CHANGELOG_ENTRIES } from '@/lib/changelog';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -263,6 +265,23 @@ export default function ProfilePage() {
           </button>
         </div>
       </form>
+
+      {/* Standalone What's New Changelog Section */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-7 shadow-xs space-y-4">
+        <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
+          <Sparkles className="w-4 h-4 text-brand-700" />
+          <span>What&apos;s New</span>
+        </div>
+
+        <div className="divide-y divide-slate-100">
+          {CHANGELOG_ENTRIES.map((item) => (
+            <div key={item.id} className="py-3.5 first:pt-0 last:pb-0 space-y-1">
+              <h3 className="text-xs font-bold text-slate-900">{item.title}</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">{item.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
