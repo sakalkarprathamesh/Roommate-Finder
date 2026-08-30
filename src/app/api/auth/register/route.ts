@@ -17,6 +17,7 @@ export async function POST(req: Request) {
       confirmPassword,
       bio,
       profilePhotoUrl,
+      isDemo,
     } = body;
 
     if (!fullName || !email || !phone || !school || !department || !year || !password) {
@@ -37,21 +38,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Please enter a valid email address (e.g. yourname@gmail.com)' }, { status: 400 });
     }
 
-    console.log(`[AUTH_REGISTER] Checking if user exists for email: "${cleanEmail}"`);
-
     const existingUser = await prisma.user.findUnique({
       where: { email: cleanEmail },
     });
 
     if (existingUser) {
-      console.warn(`[AUTH_REGISTER] User "${cleanEmail}" already exists.`);
       return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 });
     }
 
+    // Detect if this is a test/demo account by email pattern or explicit parameter
+    const isDemoAccount =
+      Boolean(isDemo) ||
+      cleanEmail.includes('+demo') ||
+      cleanEmail.includes('+test') ||
+      cleanEmail.startsWith('demo.') ||
+      cleanEmail.startsWith('test.') ||
+      cleanEmail.includes('@demo.') ||
+      cleanEmail.includes('@test.');
+
     // Step 2: Hash password with bcrypt
     const passwordHash = await hashPassword(password);
-
-    console.log(`[AUTH_REGISTER] Creating new user in persistent database for "${cleanEmail}"...`);
 
     const newUser = await prisma.user.create({
       data: {
@@ -59,6 +65,7 @@ export async function POST(req: Request) {
         passwordHash,
         role: 'student',
         isActive: true,
+        isDemo: isDemoAccount,
         profile: {
           create: {
             name: fullName.trim(),
@@ -82,8 +89,6 @@ export async function POST(req: Request) {
       },
     });
 
-    console.log(`[AUTH_REGISTER] User created successfully in database (ID: ${newUser.id})`);
-
     await prisma.notification.create({
       data: {
         userId: newUser.id,
@@ -105,6 +110,7 @@ export async function POST(req: Request) {
         id: newUser.id,
         email: newUser.email,
         role: newUser.role,
+        isDemo: newUser.isDemo,
         profile: newUser.profile,
       },
       message: 'Account created successfully',

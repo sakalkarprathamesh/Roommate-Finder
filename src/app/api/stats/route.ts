@@ -7,6 +7,8 @@ export async function GET() {
   try {
     const occupiedListingsCount = await prisma.listing.count({
       where: {
+        isDemo: false,
+        owner: { isDemo: false },
         OR: [
           { status: 'OCCUPIED' },
           { status: 'FILLED' },
@@ -16,11 +18,12 @@ export async function GET() {
 
     const activeListingsCount = await prisma.listing.count({
       where: {
+        isDemo: false,
+        owner: { isDemo: false },
         status: 'ACTIVE',
       },
     });
 
-    // Each occupied space represents matched student connections
     const matchedStudentsCount = occupiedListingsCount > 0 ? occupiedListingsCount * 2 : 0;
 
     return NextResponse.json({

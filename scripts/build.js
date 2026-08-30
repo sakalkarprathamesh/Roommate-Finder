@@ -26,6 +26,47 @@ if (dbUrl && !dbUrl.includes('localhost:5432')) {
       env: { ...process.env, DATABASE_URL: migrationUrl },
     });
     console.log('✅ Database schema verified.');
+
+    console.log('🔒 Ensuring test/demo accounts are flagged as isDemo = true...');
+    execSync(
+      `DATABASE_URL="${migrationUrl}" npx tsx -e "
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        async function run() {
+          const demoEmails = [
+            'admin@mitadt.ac.in',
+            'rahul.sharma@gmail.com',
+            'ananya.ux@gmail.com',
+            'rohan.engg@gmail.com',
+            'priya.foodtech@gmail.com',
+            'aditya.aero@gmail.com'
+          ];
+          await prisma.user.updateMany({
+            where: {
+              OR: [
+                { email: { in: demoEmails } },
+                { email: { contains: '+demo' } },
+                { email: { contains: '+test' } },
+                { email: { startsWith: 'demo.' } },
+                { email: { startsWith: 'test.' } },
+                { email: { contains: '@demo.' } },
+                { email: { contains: '@test.' } }
+              ]
+            },
+            data: { isDemo: true }
+          });
+          const demoUsers = await prisma.user.findMany({ where: { isDemo: true }, select: { id: true } });
+          const ids = demoUsers.map(u => u.id);
+          await prisma.listing.updateMany({
+            where: { ownerId: { in: ids } },
+            data: { isDemo: true }
+          });
+          console.log('✅ Demo data isolation sync complete.');
+        }
+        run().then(() => prisma.\\$disconnect()).catch(err => { console.warn(err); prisma.\\$disconnect(); });
+      "`,
+      { stdio: 'inherit', shell: true, env: { ...process.env, DATABASE_URL: migrationUrl } }
+    );
   } catch (err) {
     console.warn('⚠️ Note during database schema sync:', err.message);
   }

@@ -11,7 +11,7 @@ async function main() {
     return;
   }
 
-  console.log('🌱 Database is empty. Seeding initial admin and demo listings...');
+  console.log('🌱 Database is empty. Seeding initial admin and demo listings (isolated as isDemo: true)...');
   const defaultPasswordHash = await bcrypt.hash('Password@123', 10);
   const adminPasswordHash = await bcrypt.hash('Admin@123', 10);
 
@@ -22,6 +22,7 @@ async function main() {
       passwordHash: adminPasswordHash,
       role: 'admin',
       isActive: true,
+      isDemo: true,
       profile: {
         create: {
           name: 'MIT-ADT Housing Admin',
@@ -41,13 +42,14 @@ async function main() {
     },
   });
 
-  // 2. Student 1: Rahul Sharma
+  // 2. Student 1: Rahul Sharma (Demo)
   const rahul = await prisma.user.create({
     data: {
       email: 'rahul.sharma@gmail.com',
       passwordHash: defaultPasswordHash,
       role: 'student',
       isActive: true,
+      isDemo: true,
       profile: {
         create: {
           name: 'Rahul Sharma',
@@ -69,13 +71,14 @@ async function main() {
     },
   });
 
-  // 3. Student 2: Ananya Patel
+  // 3. Student 2: Ananya Patel (Demo)
   const ananya = await prisma.user.create({
     data: {
       email: 'ananya.ux@gmail.com',
       passwordHash: defaultPasswordHash,
       role: 'student',
       isActive: true,
+      isDemo: true,
       profile: {
         create: {
           name: 'Ananya Patel',
@@ -97,7 +100,7 @@ async function main() {
     },
   });
 
-  // 4. Sample Accommodation Listings
+  // 4. Sample Accommodation Listings (Demo)
   await prisma.listing.create({
     data: {
       ownerId: rahul.id,
@@ -115,6 +118,7 @@ async function main() {
       expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
       description: 'We are three MIT-ADT students looking for one more student to share our 2BHK flat. High-speed WiFi, RO water, and daily maid service available.',
       status: 'ACTIVE',
+      isDemo: true,
     },
   });
 
@@ -135,10 +139,11 @@ async function main() {
       expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 25),
       description: 'Seeking a female student or designer roommate to share a fully furnished premium flat with gym, pool, and club access in Amanora.',
       status: 'ACTIVE',
+      isDemo: true,
     },
   });
 
-  console.log('✅ Initial database seed completed.');
+  console.log('✅ Initial demo seed completed with isDemo: true.');
 }
 
 main()

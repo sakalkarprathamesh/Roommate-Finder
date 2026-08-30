@@ -19,6 +19,7 @@ export async function GET(req: Request) {
     const minRent = parseInt(url.searchParams.get('minRent') || '0', 10);
     const maxRent = parseInt(url.searchParams.get('maxRent') || '999999', 10);
     const sortBy = url.searchParams.get('sortBy') || 'newest';
+    const includeDemo = url.searchParams.get('includeDemo') === 'true';
 
     const statusParam = url.searchParams.get('status');
     // Case-insensitive status filter; empty or 'ALL' returns all listings
@@ -33,6 +34,7 @@ export async function GET(req: Request) {
 
     const listings = await prisma.listing.findMany({
       where: {
+        ...(includeDemo ? {} : { isDemo: false }),
         ...(statusFilter
           ? {
               OR: [
@@ -47,6 +49,7 @@ export async function GET(req: Request) {
           : {}),
         owner: {
           isActive: true,
+          ...(includeDemo ? {} : { isDemo: false }),
           profile: {
             ...(school ? { school } : {}),
             ...(department ? { department } : {}),
@@ -87,6 +90,7 @@ export async function GET(req: Request) {
       ...l,
       owner: {
         id: l.owner.id,
+        isDemo: l.owner.isDemo,
         profile: sanitizeProfile(l.owner.profile, false),
       },
     }));
@@ -122,6 +126,7 @@ export async function POST(req: Request) {
       totalCapacity,
       moveInDate,
       description,
+      isDemo,
     } = body;
 
     if (!title || !listingType || !accommodationType || !roomType || !location || !rent || !moveInDate || !description) {
@@ -140,6 +145,8 @@ export async function POST(req: Request) {
 
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
 
+    const isListingDemo = Boolean(isDemo) || Boolean((user as any).isDemo);
+
     const listing = await prisma.listing.create({
       data: {
         ownerId: user.id,
@@ -157,6 +164,7 @@ export async function POST(req: Request) {
         expiresAt,
         description: description.trim(),
         status: 'ACTIVE',
+        isDemo: isListingDemo,
       },
     });
 

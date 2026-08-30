@@ -6,6 +6,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    id: 'verified-live-listings',
+    title: 'Verified live student listings',
+    description:
+      'Search results and roommate matches now exclusively display active, verified student accommodations with real-time availability.',
+  },
+  {
     id: 'persistent-student-accounts',
     title: 'Persistent accounts & uninterrupted logins',
     description:

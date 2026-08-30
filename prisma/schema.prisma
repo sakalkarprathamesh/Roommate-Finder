@@ -13,6 +13,7 @@ model User {
   passwordHash String
   role         String    @default("student") // "student", "admin"
   isActive     Boolean   @default(true)
+  isDemo       Boolean   @default(false)     // True for sample/test/demo accounts
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -69,6 +70,7 @@ model Listing {
   expiresAt         DateTime // Listing expiration timestamp
   description       String
   status            String   @default("ACTIVE") // "ACTIVE", "FILLED", "EXPIRED", "REMOVED", "OCCUPIED", "PENDING_CONFIRMATION"
+  isDemo            Boolean  @default(false)    // True for sample/test/demo listings
 
   // Feature 1: Mutual Occupancy confirmation fields
   occupiedInitiatorId   String?
