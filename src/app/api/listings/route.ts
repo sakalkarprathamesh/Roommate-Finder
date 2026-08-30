@@ -21,20 +21,30 @@ export async function GET(req: Request) {
     const sortBy = url.searchParams.get('sortBy') || 'newest';
 
     const statusParam = url.searchParams.get('status');
-    // If status is empty string, 'ALL', or 'all', do not filter by status so all statuses are returned
+    // Case-insensitive status filter; empty or 'ALL' returns all listings
     const statusFilter =
       statusParam === null
         ? 'ACTIVE'
         : statusParam.trim() === '' || statusParam.toUpperCase() === 'ALL'
         ? undefined
-        : statusParam.toUpperCase();
+        : statusParam.trim();
 
     const now = new Date();
 
     const listings = await prisma.listing.findMany({
       where: {
-        ...(statusFilter ? { status: statusFilter } : {}),
-        ...(statusFilter === 'ACTIVE' ? { expiresAt: { gte: now } } : {}),
+        ...(statusFilter
+          ? {
+              OR: [
+                { status: statusFilter.toUpperCase() },
+                { status: statusFilter.toLowerCase() },
+                { status: statusFilter },
+              ],
+            }
+          : {}),
+        ...(statusFilter && statusFilter.toUpperCase() === 'ACTIVE'
+          ? { expiresAt: { gte: now } }
+          : {}),
         owner: {
           isActive: true,
           profile: {

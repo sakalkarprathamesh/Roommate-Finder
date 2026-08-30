@@ -44,11 +44,9 @@ export default function StudentDashboard() {
         return;
       }
 
-      let currentUserId = '';
       if (profRes.ok) {
         const pData = await profRes.json();
         setProfile(pData.profile);
-        currentUserId = pData.profile?.userId || pData.profile?.id || '';
       }
 
       if (reqRes.ok) {
@@ -115,35 +113,50 @@ export default function StudentDashboard() {
   };
 
   const currentUserId = profile?.userId || profile?.id;
+  const connectedListingIds = new Set((requests.connected || []).map((c: any) => c.listingId));
 
-  // Filter listings where current user is either the listing OWNER or the matched OCCUPIED PARTNER
+  // Filter listings where current user is:
+  // 1. The listing OWNER
+  // 2. The explicit OCCUPIED PARTNER
+  // 3. An ACCEPTED connected roommate on this listing (covers listings marked occupied prior to recent updates)
   const userListings = listings.filter((l) => {
     if (!currentUserId) return true;
     const isOwner = l.ownerId === currentUserId || l.owner?.id === currentUserId;
     const isOccupiedPartner =
       l.occupiedPartnerId === currentUserId ||
       l.occupiedInitiatorId === currentUserId;
-    return isOwner || isOccupiedPartner;
+    const isConnectedPartner = connectedListingIds.has(l.id);
+    return isOwner || isOccupiedPartner || isConnectedPartner;
   });
 
   // Tab 1: ONLY Active Listings (default view)
-  const activeListings = userListings.filter(
-    (l) =>
-      (l.status?.toUpperCase() === 'ACTIVE') &&
-      new Date(l.expiresAt) >= new Date()
-  );
+  const activeListings = userListings.filter((l) => {
+    const statusUpper = l.status?.toUpperCase();
+    return (
+      statusUpper === 'ACTIVE' &&
+      new Date(l.expiresAt) >= new Date() &&
+      !l.occupiedConfirmedAt
+    );
+  });
 
-  // Tab 2: Occupied & Past Listings (case-insensitive)
-  const occupiedListings = userListings.filter(
-    (l) => l.status?.toUpperCase() === 'OCCUPIED'
-  );
+  // Tab 2: Occupied & Past Listings (both new and legacy occupied data)
+  const occupiedListings = userListings.filter((l) => {
+    const statusUpper = l.status?.toUpperCase();
+    return (
+      statusUpper === 'OCCUPIED' ||
+      Boolean(l.occupiedConfirmedAt) ||
+      (statusUpper === 'FILLED' && connectedListingIds.has(l.id))
+    );
+  });
 
-  const pastOtherListings = userListings.filter(
-    (l) =>
-      l.status?.toUpperCase() === 'FILLED' ||
-      l.status?.toUpperCase() === 'EXPIRED' ||
-      (l.status?.toUpperCase() === 'ACTIVE' && new Date(l.expiresAt) < new Date())
-  );
+  const pastOtherListings = userListings.filter((l) => {
+    const statusUpper = l.status?.toUpperCase();
+    return (
+      statusUpper === 'EXPIRED' ||
+      (statusUpper === 'ACTIVE' && new Date(l.expiresAt) < new Date()) ||
+      (statusUpper === 'FILLED' && !connectedListingIds.has(l.id))
+    );
+  });
 
   const occupiedAndPastListings = [...occupiedListings, ...pastOtherListings];
 
@@ -340,11 +353,16 @@ export default function StudentDashboard() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {occupiedAndPastListings.map((l) => {
-                const isOccupied = l.status?.toUpperCase() === 'OCCUPIED';
+                const isOccupied =
+                  l.status?.toUpperCase() === 'OCCUPIED' ||
+                  Boolean(l.occupiedConfirmedAt) ||
+                  (l.status?.toUpperCase() === 'FILLED' && connectedListingIds.has(l.id));
+
                 const isExpired =
                   l.status?.toUpperCase() === 'EXPIRED' ||
                   (l.status?.toUpperCase() === 'ACTIVE' && new Date(l.expiresAt) < new Date());
-                const isFilled = l.status?.toUpperCase() === 'FILLED';
+
+                const isFilled = l.status?.toUpperCase() === 'FILLED' && !isOccupied;
                 const isOwner = l.ownerId === currentUserId || l.owner?.id === currentUserId;
 
                 return (
