@@ -26,6 +26,7 @@ model User {
   reportsReceived Report[] @relation("ReportedTargetUser")
 
   notifications Notification[]
+  sentMessages  Message[]      @relation("SentMessages")
 }
 
 model Profile {
@@ -67,12 +68,22 @@ model Listing {
   moveInDate        String   // e.g. "September 2026", "Immediately"
   expiresAt         DateTime // Listing expiration timestamp
   description       String
-  status            String   @default("ACTIVE") // "ACTIVE", "FILLED", "EXPIRED", "REMOVED"
+  status            String   @default("ACTIVE") // "ACTIVE", "FILLED", "EXPIRED", "REMOVED", "OCCUPIED", "PENDING_CONFIRMATION"
+
+  // Feature 1: Mutual Occupancy confirmation fields
+  occupiedInitiatorId   String?
+  occupiedPartnerId     String?
+  occupiedRequestId     String?
+  occupiedConfirmedAt   DateTime?
+  occupiedUndoUntil     DateTime?
+  occupiedConfirmedBy   String?
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   contactRequests   ContactRequest[]
   reports           Report[]
+  messages          Message[]
 }
 
 model ContactRequest {
@@ -85,10 +96,33 @@ model ContactRequest {
   listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
   status     String   @default("PENDING") // "PENDING", "ACCEPTED", "REJECTED", "CANCELLED"
   message    String?
+
+  // Feature 1: Occupancy mutual confirmation status on connection
+  occupancyStatus       String?   // null | "PENDING_CONFIRMATION" | "CONFIRMED"
+  occupancyInitiatorId  String?
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  messages   Message[]
+
   @@unique([senderId, listingId])
+}
+
+model Message {
+  id               String         @id @default(cuid())
+  contactRequestId String
+  contactRequest   ContactRequest @relation(fields: [contactRequestId], references: [id], onDelete: Cascade)
+  listingId        String
+  listing          Listing        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  senderId         String
+  sender           User           @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  content          String         // Enforces 500 word limit
+  createdAt        DateTime       @default(now())
+
+  @@index([contactRequestId])
+  @@index([listingId])
+  @@index([senderId])
 }
 
 model Report {
@@ -111,7 +145,7 @@ model Notification {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String   // "REQUEST_RECEIVED", "REQUEST_ACCEPTED", "REQUEST_REJECTED", "LISTING_EXPIRING", "VERIFICATION_STATUS"
+  type      String   // "REQUEST_RECEIVED", "REQUEST_ACCEPTED", "REQUEST_REJECTED", "LISTING_EXPIRING", "VERIFICATION_STATUS", "OCCUPANCY_REQUEST", "OCCUPANCY_CONFIRMED", "NEW_MESSAGE"
   title     String
   message   String
   link      String?

@@ -16,6 +16,8 @@ import {
   ArrowRight,
   MapPin,
   Calendar,
+  Home,
+  MessageSquare,
 } from 'lucide-react';
 import { LISTING_TYPES } from '@/lib/constants';
 
@@ -25,7 +27,7 @@ export default function StudentDashboard() {
   const [listings, setListings] = useState<any[]>([]);
   const [requests, setRequests] = useState<any>({ received: [], sent: [], connected: [] });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'active' | 'expired' | 'filled'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'occupied' | 'filled' | 'expired'>('active');
 
   const fetchDashboardData = async () => {
     try {
@@ -84,6 +86,21 @@ export default function StudentDashboard() {
     }
   };
 
+  const handleOccupyAction = async (listingId: string, action: string) => {
+    try {
+      const res = await fetch(`/api/listings/${listingId}/occupy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      if (res.ok) {
+        fetchDashboardData();
+      }
+    } catch {
+      // handle error
+    }
+  };
+
   const handleDelete = async (listingId: string) => {
     if (!confirm('Are you sure you want to delete this listing?')) return;
     try {
@@ -98,8 +115,9 @@ export default function StudentDashboard() {
 
   const userListings = listings.filter((l) => profile?.userId ? l.ownerId === profile.userId || l.owner?.id === profile.userId : true);
   const activeListings = userListings.filter((l) => l.status === 'ACTIVE' && new Date(l.expiresAt) >= new Date());
-  const expiredListings = userListings.filter((l) => l.status === 'EXPIRED' || (l.status === 'ACTIVE' && new Date(l.expiresAt) < new Date()));
+  const occupiedListings = userListings.filter((l) => l.status === 'OCCUPIED');
   const filledListings = userListings.filter((l) => l.status === 'FILLED');
+  const expiredListings = userListings.filter((l) => l.status === 'EXPIRED' || (l.status === 'ACTIVE' && new Date(l.expiresAt) < new Date()));
 
   const pendingReceived = (requests.received || []).filter((r: any) => r.status === 'PENDING');
   const connectedList = requests.connected || [];
@@ -175,7 +193,7 @@ export default function StudentDashboard() {
               {connectedList.length}
             </span>
             <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-              Unlocked Contacts
+              Chat & Contacts
             </span>
           </div>
         </Link>
@@ -183,21 +201,29 @@ export default function StudentDashboard() {
 
       {/* Listings Management Tabs */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg sm:text-xl font-black text-slate-900">My Listings</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h2 className="text-lg sm:text-xl font-black text-slate-900">My Accommodation Listings</h2>
 
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto">
             <button
               onClick={() => setActiveTab('active')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
                 activeTab === 'active' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
               }`}
             >
               Active ({activeListings.length})
             </button>
             <button
+              onClick={() => setActiveTab('occupied')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
+                activeTab === 'occupied' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
+              }`}
+            >
+              Occupied ({occupiedListings.length})
+            </button>
+            <button
               onClick={() => setActiveTab('filled')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
                 activeTab === 'filled' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
               }`}
             >
@@ -205,7 +231,7 @@ export default function StudentDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('expired')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
                 activeTab === 'expired' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
               }`}
             >
@@ -281,6 +307,45 @@ export default function StudentDashboard() {
                       title="Delete Listing"
                     >
                       <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        ) : activeTab === 'occupied' ? (
+          occupiedListings.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 text-xs">
+              No occupied listings yet. Listings confirmed as occupied with roommates will appear here.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {occupiedListings.map((l) => (
+                <div key={l.id} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-2xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-slate-900 text-white rounded">
+                          Occupied
+                        </span>
+                        {l.occupiedConfirmedAt && (
+                          <span className="text-[11px] text-slate-400">
+                            Marked on {new Date(l.occupiedConfirmedAt).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-bold text-slate-900 text-sm mt-1">{l.title}</h4>
+                      <p className="text-xs text-slate-500 mt-0.5">{l.location} • ₹{l.rent.toLocaleString('en-IN')}/mo</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
+                    <button
+                      onClick={() => handleOccupyAction(l.id, 'reopen')}
+                      className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-blue-700" />
+                      Reopen this listing
                     </button>
                   </div>
                 </div>
@@ -386,7 +451,7 @@ export default function StudentDashboard() {
           <div className="flex items-center justify-between border-b border-slate-100 pb-2">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <UserCheck className="w-4 h-4 text-emerald-600" />
-              Connected Roommates & Contacts
+              Connected Roommates & Chat
             </h3>
             <Link href="/inbox" className="text-xs font-bold text-brand-700 hover:underline">
               View All
@@ -403,12 +468,13 @@ export default function StudentDashboard() {
                     <span className="font-bold text-slate-900">{c.contact.profile.name}</span>
                     <p className="text-[11px] text-slate-500">{c.contact.profile.department}</p>
                   </div>
-                  <a
-                    href={`tel:${c.contact.profile.phone}`}
-                    className="font-bold text-emerald-700 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 text-xs"
+                  <Link
+                    href="/inbox"
+                    className="font-bold text-brand-900 bg-white px-2.5 py-1 rounded-lg border border-brand-200 text-xs flex items-center gap-1"
                   >
-                    {c.contact.profile.phone}
-                  </a>
+                    <MessageSquare className="w-3 h-3 text-brand-700" />
+                    Chat
+                  </Link>
                 </div>
               ))}
             </div>

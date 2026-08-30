@@ -20,18 +20,29 @@ export default function InboxPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'connected'>('received');
   const [data, setData] = useState<any>({ received: [], sent: [], connected: [] });
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchInbox = async () => {
     try {
-      const res = await fetch('/api/contact-requests');
-      if (res.status === 401) {
+      const [inboxRes, meRes] = await Promise.all([
+        fetch('/api/contact-requests'),
+        fetch('/api/auth/me'),
+      ]);
+
+      if (inboxRes.status === 401 || meRes.status === 401) {
         router.push('/login?redirect=/inbox');
         return;
       }
-      if (res.ok) {
-        const json = await res.json();
+
+      if (inboxRes.ok) {
+        const json = await inboxRes.json();
         setData(json);
+      }
+
+      if (meRes.ok) {
+        const meJson = await meRes.json();
+        setCurrentUser(meJson.user);
       }
     } catch {
       // handle
@@ -57,7 +68,7 @@ export default function InboxPage() {
             Contact Requests & Connections
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Review incoming requests for your listings and view unlocked contact details for approved connections.
+            Review incoming requests for your listings, chat privately, and confirm space occupancy.
           </p>
         </div>
 
@@ -134,9 +145,13 @@ export default function InboxPage() {
                 listingTitle={r.listingTitle}
                 listingLocation={r.listingLocation}
                 listingRent={r.listingRent}
+                listingStatus={r.listingStatus}
                 status={r.status}
                 message={r.message}
                 createdAt={r.createdAt}
+                currentUserId={currentUser?.id}
+                occupancyStatus={r.occupancyStatus}
+                occupancyInitiatorId={r.occupancyInitiatorId}
                 sender={r.sender}
                 onActionComplete={fetchInbox}
               />
@@ -169,9 +184,13 @@ export default function InboxPage() {
                 listingTitle={r.listingTitle}
                 listingLocation={r.listingLocation}
                 listingRent={r.listingRent}
+                listingStatus={r.listingStatus}
                 status={r.status}
                 message={r.message}
                 createdAt={r.createdAt}
+                currentUserId={currentUser?.id}
+                occupancyStatus={r.occupancyStatus}
+                occupancyInitiatorId={r.occupancyInitiatorId}
                 receiver={r.receiver}
                 onActionComplete={fetchInbox}
               />
@@ -183,7 +202,7 @@ export default function InboxPage() {
           <UserCheck className="w-10 h-10 text-slate-300 mx-auto" />
           <h3 className="text-base font-bold text-slate-900">No accepted connections yet.</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Once a contact request is approved, phone numbers and emails will appear here for direct calling or emailing.
+            Once a contact request is approved, private chat and verified contacts will appear here.
           </p>
         </div>
       ) : (
@@ -197,8 +216,15 @@ export default function InboxPage() {
               listingTitle={c.listingTitle}
               listingLocation={c.listingLocation}
               listingRent={c.listingRent}
+              listingStatus={c.listingStatus}
+              listingOwnerId={c.listingOwnerId}
               status="ACCEPTED"
               connectedAt={c.connectedAt}
+              currentUserId={currentUser?.id}
+              occupancyStatus={c.occupancyStatus}
+              occupancyInitiatorId={c.occupancyInitiatorId}
+              occupiedConfirmedAt={c.occupiedConfirmedAt}
+              occupiedUndoUntil={c.occupiedUndoUntil}
               contact={c.contact}
               role={c.role}
               onActionComplete={fetchInbox}
