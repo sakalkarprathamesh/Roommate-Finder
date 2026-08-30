@@ -6,6 +6,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    id: 'shared-occupied-history',
+    title: 'Shared occupancy history',
+    description:
+      'Both you and your matched roommate can now view your confirmed occupied listings in your dashboard history at any time.',
+  },
+  {
     id: 'mark-room-occupied',
     title: 'Mark a room as occupied',
     description:
