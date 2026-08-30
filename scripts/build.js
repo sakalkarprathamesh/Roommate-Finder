@@ -19,21 +19,15 @@ execSync('npx prisma generate', { stdio: 'inherit', env: process.env });
 if (dbUrl && !dbUrl.includes('localhost:5432')) {
   try {
     const migrationUrl = process.env.POSTGRES_URL_NON_POOLING || dbUrl;
-    console.log('⚡ Pushing database schema to Cloud PostgreSQL...');
-    execSync(`DATABASE_URL="${migrationUrl}" npx prisma db push --accept-data-loss`, {
+    console.log('⚡ Ensuring database schema is synced without data loss...');
+    execSync(`DATABASE_URL="${migrationUrl}" npx prisma db push`, {
       stdio: 'inherit',
       shell: true,
       env: { ...process.env, DATABASE_URL: migrationUrl },
     });
-    console.log('🌱 Seeding initial demo student accounts and listings...');
-    execSync(`DATABASE_URL="${migrationUrl}" npx tsx prisma/seed.ts`, {
-      stdio: 'inherit',
-      shell: true,
-      env: { ...process.env, DATABASE_URL: migrationUrl },
-    });
-    console.log('✅ Cloud PostgreSQL database synchronized successfully.');
+    console.log('✅ Database schema verified.');
   } catch (err) {
-    console.warn('⚠️ Note during database sync/seed:', err.message);
+    console.warn('⚠️ Note during database schema sync:', err.message);
   }
 } else {
   console.log('ℹ️ Build completed.');

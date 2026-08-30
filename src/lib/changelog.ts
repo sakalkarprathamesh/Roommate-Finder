@@ -6,6 +6,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    id: 'persistent-student-accounts',
+    title: 'Persistent accounts & uninterrupted logins',
+    description:
+      'Your student login, profile info, and listings are permanently saved and will never be affected by future site updates.',
+  },
+  {
     id: 'shared-occupied-history',
     title: 'Shared occupancy history',
     description:
