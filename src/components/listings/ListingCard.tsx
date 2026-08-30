@@ -21,10 +21,10 @@ interface ListingCardProps {
   roomType: string;
   location: string;
   rent: number;
-  deposit: number;
-  currentOccupants: number;
-  vacancies: number;
-  totalCapacity: number;
+  deposit?: number;
+  currentOccupants?: number;
+  vacancies?: number;
+  totalCapacity?: number;
   moveInDate: string;
   owner: {
     id: string;
@@ -37,6 +37,7 @@ interface ListingCardProps {
       emailVerified: boolean;
     };
   };
+  isVisualOnly?: boolean; // When true, purely visual/non-clickable sample card
 }
 
 export default function ListingCard({
@@ -47,10 +48,11 @@ export default function ListingCard({
   roomType,
   location,
   rent,
-  currentOccupants,
-  vacancies,
+  currentOccupants = 0,
+  vacancies = 1,
   moveInDate,
   owner,
+  isVisualOnly = false,
 }: ListingCardProps) {
   const p = owner?.profile;
 
@@ -72,7 +74,9 @@ export default function ListingCard({
   const typeLabel = (LISTING_TYPES as Record<string, string>)[listingType] || listingType;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group">
+    <div className={`bg-white rounded-2xl border border-slate-200 shadow-2xs flex flex-col justify-between overflow-hidden group ${
+      isVisualOnly ? 'opacity-95' : 'hover:shadow-md transition-all'
+    }`}>
       <div className="p-5 pb-4 space-y-3.5">
         {/* Top Tag & Price */}
         <div className="flex items-center justify-between gap-2">
@@ -88,9 +92,15 @@ export default function ListingCard({
         </div>
 
         {/* Listing Title */}
-        <Link href={`/listings/${id}`} className="block font-bold text-slate-900 text-sm sm:text-base hover:text-brand-700 transition-colors line-clamp-2">
-          {title}
-        </Link>
+        {isVisualOnly ? (
+          <span className="block font-bold text-slate-900 text-sm sm:text-base line-clamp-2 cursor-default">
+            {title}
+          </span>
+        ) : (
+          <Link href={`/listings/${id}`} className="block font-bold text-slate-900 text-sm sm:text-base hover:text-brand-700 transition-colors line-clamp-2">
+            {title}
+          </Link>
+        )}
 
         {/* Student Owner Info & Verification */}
         <div className="flex items-center gap-2.5 pt-1">
@@ -139,16 +149,22 @@ export default function ListingCard({
         </div>
       </div>
 
-      {/* Action Button */}
+      {/* Action Area */}
       <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
         <span className="text-[11px] text-slate-400 font-medium">{p?.school}</span>
-        <Link
-          href={`/listings/${id}`}
-          className="text-xs font-bold text-brand-900 hover:text-brand-700 px-3 py-1.5 rounded-xl hover:bg-slate-200/60 transition-colors flex items-center gap-1"
-        >
-          View Details
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
+        {isVisualOnly ? (
+          <span className="text-[11px] font-bold text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs select-none">
+            Sample Preview
+          </span>
+        ) : (
+          <Link
+            href={`/listings/${id}`}
+            className="text-xs font-bold text-brand-900 hover:text-brand-700 px-3 py-1.5 rounded-xl hover:bg-slate-200/60 transition-colors flex items-center gap-1"
+          >
+            View Details
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        )}
       </div>
     </div>
   );

@@ -18,6 +18,7 @@ import ListingCard from '@/components/listings/ListingCard';
 
 export default function HomePage() {
   const [featuredListings, setFeaturedListings] = useState<any[]>([]);
+  const [sampleListings, setSampleListings] = useState<any[]>([]);
   const [stats, setStats] = useState<{
     occupiedListingsCount: number;
     matchedStudentsCount: number;
@@ -29,6 +30,7 @@ export default function HomePage() {
   });
 
   useEffect(() => {
+    // 1. Fetch Real Live Listings (isDemo: false)
     fetch('/api/listings?status=ACTIVE')
       .then((res) => res.json())
       .then((data) => {
@@ -38,7 +40,17 @@ export default function HomePage() {
       })
       .catch(() => {});
 
-    // Fetch dynamic public matched stats
+    // 2. Fetch Sample Demo Listings (isDemo: true, purely visual preview)
+    fetch('/api/listings?demoOnly=true&status=ACTIVE')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.listings) {
+          setSampleListings(data.listings.slice(0, 4));
+        }
+      })
+      .catch(() => {});
+
+    // 3. Fetch Dynamic Public Matched Stats (isDemo: false only)
     fetch('/api/stats')
       .then((res) => res.json())
       .then((data) => {
@@ -98,7 +110,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* UPDATE 1: Prominent Public Match Counter Highlight */}
+          {/* Public Matched Counter Highlight */}
           <div className="pt-2 flex items-center justify-center">
             <div className="bg-white rounded-2xl border border-slate-200 px-5 py-3 shadow-2xs inline-flex items-center gap-3.5 text-left">
               <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center font-bold flex-shrink-0">
@@ -121,7 +133,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Live Recent Listings */}
+      {/* Live Recent Listings (Only displayed when real student listings exist) */}
       {featuredListings.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
@@ -158,13 +170,14 @@ export default function HomePage() {
                 totalCapacity={listing.totalCapacity}
                 moveInDate={listing.moveInDate}
                 owner={listing.owner}
+                isVisualOnly={false}
               />
             ))}
           </div>
         </section>
       )}
 
-      {/* How It Works (Section 13) */}
+      {/* How It Works (4-Step Process Section) */}
       <section className="bg-white border-y border-slate-200 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
@@ -215,7 +228,55 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Privacy & Trust Section (Section 13) */}
+      {/* Sample Accommodation Listings (Placed Directly BELOW 4-Step Process) */}
+      {sampleListings.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+            <div>
+              <span className="text-xs font-bold text-brand-700 uppercase tracking-wider">
+                Featured Accommodation Examples
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5">
+                Explore Popular Student Configurations
+              </h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Typical room types, pricing, and locations shared across MIT-ADT University campuses.
+              </p>
+            </div>
+
+            <Link
+              href="/find"
+              className="text-xs font-bold text-brand-700 hover:text-brand-900 flex items-center gap-1 self-start sm:self-auto"
+            >
+              Browse all live listings <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {sampleListings.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                id={listing.id}
+                title={listing.title}
+                listingType={listing.listingType}
+                accommodationType={listing.accommodationType}
+                roomType={listing.roomType}
+                location={listing.location}
+                rent={listing.rent}
+                deposit={listing.deposit}
+                currentOccupants={listing.currentOccupants}
+                vacancies={listing.vacancies}
+                totalCapacity={listing.totalCapacity}
+                moveInDate={listing.moveInDate}
+                owner={listing.owner}
+                isVisualOnly={true} // Non-clickable and purely visual
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Privacy & Trust Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-slate-900 rounded-3xl p-8 sm:p-12 text-white flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl">
           <div className="space-y-3 max-w-xl">

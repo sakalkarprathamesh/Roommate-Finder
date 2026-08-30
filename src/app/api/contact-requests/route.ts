@@ -75,7 +75,7 @@ export async function GET(req: Request) {
       };
     });
 
-    // Connected list: all accepted requests (either sent or received)
+    // Format connected list
     const connected: any[] = [];
 
     receivedRequests
@@ -98,7 +98,7 @@ export async function GET(req: Request) {
           connectedAt: r.updatedAt,
           contact: {
             id: r.sender.id,
-            profile: sanitizeProfile(r.sender.profile, true), // Fully authorized contact info
+            profile: sanitizeProfile(r.sender.profile, true),
           },
           role: 'Requester',
         });
@@ -124,7 +124,7 @@ export async function GET(req: Request) {
           connectedAt: r.updatedAt,
           contact: {
             id: r.receiver.id,
-            profile: sanitizeProfile(r.receiver.profile, true), // Fully authorized contact info
+            profile: sanitizeProfile(r.receiver.profile, true),
           },
           role: 'Listing Owner',
         });
@@ -166,6 +166,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
     }
 
+    // Strict isolation: Block connection requests to demo listings
+    if (listing.isDemo || (listing.owner as any).isDemo) {
+      return NextResponse.json(
+        { error: 'This is a sample accommodation preview and does not accept contact requests.' },
+        { status: 400 }
+      );
+    }
+
     if (listing.ownerId === user.id) {
       return NextResponse.json({ error: 'You cannot send a contact request to your own listing' }, { status: 400 });
     }
@@ -201,8 +209,8 @@ export async function POST(req: Request) {
         data: {
           userId: listing.ownerId,
           type: 'REQUEST_RECEIVED',
-          title: 'New Contact Request',
-          message: `${user.profile?.name || 'A student'} requested contact for your listing "${listing.title}".`,
+          title: 'Contact Request Received',
+          message: `${user.email} re-sent a contact request for "${listing.title}".`,
           link: '/inbox',
         },
       });
@@ -213,7 +221,7 @@ export async function POST(req: Request) {
       });
     }
 
-    const newRequest = await prisma.contactRequest.create({
+    const contactRequest = await prisma.contactRequest.create({
       data: {
         senderId: user.id,
         receiverId: listing.ownerId,
@@ -228,17 +236,17 @@ export async function POST(req: Request) {
         userId: listing.ownerId,
         type: 'REQUEST_RECEIVED',
         title: 'New Contact Request',
-        message: `${user.profile?.name || 'A student'} (${user.profile?.department || 'MIT-ADT'}) requested contact for your listing "${listing.title}".`,
+        message: `You received a new contact request for "${listing.title}".`,
         link: '/inbox',
       },
     });
 
     return NextResponse.json({
-      contactRequest: newRequest,
+      contactRequest,
       message: 'Contact request sent successfully',
     });
   } catch (error) {
-    console.error('Send contact request error:', error);
-    return NextResponse.json({ error: 'Failed to send request' }, { status: 500 });
+    console.error('Create contact request error:', error);
+    return NextResponse.json({ error: 'Failed to send contact request' }, { status: 500 });
   }
 }
