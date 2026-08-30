@@ -61,7 +61,14 @@ if (dbUrl && !dbUrl.includes('localhost:5432')) {
             where: { ownerId: { in: ids } },
             data: { isDemo: true }
           });
-          console.log('✅ Demo data isolation sync complete.');
+
+          // Ensure owner account has full admin role
+          await prisma.user.updateMany({
+            where: { email: 'sakalkarprathamesh77@gmail.com' },
+            data: { role: 'admin', isDemo: false }
+          });
+
+          console.log('✅ Demo data isolation and owner admin sync complete.');
         }
         run().then(() => prisma.\\$disconnect()).catch(err => { console.warn(err); prisma.\\$disconnect(); });
       "`,
