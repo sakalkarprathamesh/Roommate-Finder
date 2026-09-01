@@ -11,6 +11,11 @@ const nextConfig = {
       },
     ];
   },
+  experimental: {
+    outputFileTracingIncludes: {
+      '/api/**/*': ['./prisma/dev.db', './dev.db'],
+    },
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [

@@ -230,8 +230,14 @@ export async function POST(req: Request) {
         ? 'Listing submitted and is waiting for admin verification'
         : 'Accommodation listing published successfully',
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create listing error:', error);
-    return NextResponse.json({ error: 'Failed to create listing' }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: error?.message || 'Failed to create listing',
+        detail: String(error?.stack || error),
+      },
+      { status: 500 }
+    );
   }
 }
