@@ -1,5 +1,5 @@
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -11,7 +11,10 @@ model User {
   id           String    @id @default(cuid())
   email        String    @unique
   passwordHash String
-  role         String    @default("student") // "student", "admin"
+  role         String    @default("student") // "student", "SEEKER", "PG_OWNER", "FLAT_OWNER", "admin"
+  roles        String?   @default("[\"SEEKER\"]") // JSON array for future multi-role support
+  city         String?   @default("Pune")
+  preferences  String?   // JSON string of flatmate preference keys
   isActive     Boolean   @default(true)
   isDemo       Boolean   @default(false)     // True for sample/test/demo accounts
   createdAt    DateTime  @default(now())
@@ -43,6 +46,8 @@ model Profile {
   division           String?  // Optional: "Div A", "Div B"
   studentId          String?  // Optional Student ID / Roll Number
   profilePhotoUrl    String?
+  avatarId           String?  // Avatar identifier e.g. "avatar-1"
+  city               String?  @default("Pune")
   bio                String?
   emailVerified      Boolean  @default(true)
   studentVerified    Boolean  @default(false)
@@ -57,20 +62,45 @@ model Listing {
   ownerId           String
   owner             User     @relation("UserListings", fields: [ownerId], references: [id], onDelete: Cascade)
   title             String
-  listingType       String   // "NEED_ROOMMATE", "NEED_ACCOMMODATION", "HAVE_VACANCY", "HAVE_ROOM"
+  listingType       String   // "NEED_ROOMMATE", "NEED_ACCOMMODATION", "HAVE_VACANCY", "HAVE_ROOM", "PG", "FLAT"
   accommodationType String   // "Hostel", "Flat", "Room", "PG", "Other"
-  roomType          String   // "Private", "Shared"
+  roomType          String   // "Private", "Shared", "Single", "Double", "Triple"
   location          String   // "Near MIT-ADT", "Loni Kalbhor", "Wagholi", "Kharadi", "Manjari", "Hadapsar"
-  rent              Int      // Monthly rent in ₹
-  deposit           Int      @default(0) // Security deposit in ₹
+  address           String?  // Detailed address
+  city              String?  @default("Pune")
+  rent              Int      // Monthly rent in ₹ (or starting rent)
+  deposit           Int      @default(0) // Security deposit / Deposit (If Any) in ₹
   currentOccupants  Int      @default(0) // Current occupants
   vacancies         Int      @default(1) // Vacancies available
   totalCapacity     Int      @default(1) // Total capacity of room/flat
   moveInDate        String   // e.g. "September 2026", "Immediately"
   expiresAt         DateTime // Listing expiration timestamp
   description       String
-  status            String   @default("ACTIVE") // "ACTIVE", "FILLED", "EXPIRED", "REMOVED", "OCCUPIED", "PENDING_CONFIRMATION"
+  status            String   @default("ACTIVE") // "ACTIVE", "FILLED", "EXPIRED", "REMOVED", "OCCUPIED", "PENDING_CONFIRMATION", "PENDING_VERIFICATION", "VERIFIED", "REJECTED"
   isDemo            Boolean  @default(false)    // True for sample/test/demo listings
+
+  // Extended PG Owner Fields
+  pgType            String?  // "Boys", "Girls", "Both"
+  singleRent        Int?     // Single occupancy rent
+  doubleRent        Int?     // Double occupancy rent
+  tripleRent        Int?     // Triple occupancy rent
+  maintenanceCharges Int?   // Maintenance charges (if any)
+  noticePeriod      String?  // e.g. "1 Month", "15 Days"
+  amenities         String?  // JSON array of selected amenities e.g. ["wifi", "tv", "ac"]
+  photos            String?  // JSON array of photo URLs/data
+
+  // Extended Flat Owner Fields
+  bedrooms          Int?     // Number of bedrooms (e.g. 1, 2, 3)
+  bathrooms         Int?     // Number of bathrooms
+  furnishing        String?  // "Furnished", "Semi-Furnished", "Unfurnished"
+  preferredTenant   String?  // "Students", "Boys Only", "Girls Only", "Anyone"
+  availableFrom     String?  // Available from date string
+
+  // Verification Lifecycle
+  submittedAt       DateTime? @default(now())
+  verifiedAt        DateTime?
+  verifiedBy        String?
+  rejectionReason   String?
 
   // Feature 1: Mutual Occupancy confirmation fields
   occupiedInitiatorId   String?

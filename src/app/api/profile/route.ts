@@ -9,26 +9,33 @@ export async function GET(req: Request) {
   }
 
   try {
-    const profile = await prisma.profile.findUnique({
-      where: { userId: user.id },
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: { profile: true },
     });
 
+    const profile = dbUser?.profile;
+
     return NextResponse.json({
-      profile: profile || (user as any).profile || {
+      profile: {
         userId: user.id,
-        name: user.email.split('@')[0],
+        name: profile?.name || user.email.split('@')[0],
         email: user.email,
-        phone: '',
-        school: 'School of Computing',
-        department: 'Computer Science & Engineering',
-        year: '2nd Year',
-        division: null,
-        profilePhotoUrl: null,
-        bio: null,
+        phone: profile?.phone || '',
+        school: profile?.school || 'School of Computing',
+        department: profile?.department || 'Computer Science & Engineering',
+        year: profile?.year || '2nd Year',
+        division: profile?.division || '',
+        profilePhotoUrl: profile?.profilePhotoUrl || '',
+        avatarId: profile?.avatarId || 'avatar-male-1',
+        city: dbUser?.city || profile?.city || 'Pune',
+        preferences: dbUser?.preferences ? JSON.parse(dbUser.preferences) : [],
+        bio: profile?.bio || '',
         emailVerified: true,
         studentVerified: false,
         verificationStatus: 'verified',
-        role: 'student',
+        role: dbUser?.role || user.role || 'SEEKER',
+        roles: dbUser?.roles ? JSON.parse(dbUser.roles) : [dbUser?.role || user.role || 'SEEKER'],
       },
     });
   } catch (error: any) {
@@ -42,13 +49,16 @@ export async function GET(req: Request) {
         school: 'School of Computing',
         department: 'Computer Science & Engineering',
         year: '2nd Year',
-        division: null,
-        profilePhotoUrl: null,
-        bio: null,
+        division: '',
+        profilePhotoUrl: '',
+        avatarId: 'avatar-male-1',
+        city: 'Pune',
+        preferences: [],
+        bio: '',
         emailVerified: true,
         studentVerified: false,
         verificationStatus: 'verified',
-        role: 'student',
+        role: user.role || 'SEEKER',
       },
     });
   }
@@ -62,29 +72,35 @@ export async function PUT(req: Request) {
 
   try {
     const body = await req.json();
-    const { name, phone, school, department, year, division, studentId, bio, profilePhotoUrl } = body;
+    const {
+      name,
+      phone,
+      school,
+      department,
+      year,
+      division,
+      studentId,
+      bio,
+      profilePhotoUrl,
+      avatarId,
+      city,
+      preferences,
+    } = body;
 
-    // Ensure the parent User record exists in the database
-    let dbUser = await prisma.user.findUnique({
+    // 1. Update user fields
+    await prisma.user.update({
       where: { id: user.id },
+      data: {
+        ...(city ? { city } : {}),
+        ...(preferences !== undefined
+          ? { preferences: typeof preferences === 'string' ? preferences : JSON.stringify(preferences) }
+          : {}),
+      },
     });
 
-    if (!dbUser) {
-      dbUser = await prisma.user.upsert({
-        where: { email: user.email },
-        update: {},
-        create: {
-          id: user.id,
-          email: user.email,
-          passwordHash: 'oauth_or_jwt_managed',
-          role: user.role || 'student',
-          isActive: true,
-        },
-      });
-    }
-
+    // 2. Update or upsert profile record
     const updated = await prisma.profile.upsert({
-      where: { userId: dbUser.id },
+      where: { userId: user.id },
       update: {
         ...(name ? { name: name.trim() } : {}),
         ...(phone ? { phone: phone.trim() } : {}),
@@ -95,9 +111,11 @@ export async function PUT(req: Request) {
         ...(studentId ? { studentId: studentId.trim() } : {}),
         ...(bio !== undefined ? { bio: bio ? bio.trim() : null } : {}),
         ...(profilePhotoUrl !== undefined ? { profilePhotoUrl: profilePhotoUrl ? profilePhotoUrl.trim() : null } : {}),
+        ...(avatarId ? { avatarId } : {}),
+        ...(city ? { city } : {}),
       },
       create: {
-        userId: dbUser.id,
+        userId: user.id,
         name: (name || user.email.split('@')[0]).trim(),
         email: user.email,
         phone: (phone || '').trim(),
@@ -108,14 +126,24 @@ export async function PUT(req: Request) {
         studentId: studentId ? studentId.trim() : null,
         bio: bio ? bio.trim() : null,
         profilePhotoUrl: profilePhotoUrl ? profilePhotoUrl.trim() : null,
+        avatarId: avatarId || 'avatar-male-1',
+        city: city || 'Pune',
         emailVerified: true,
         studentVerified: false,
         verificationStatus: 'verified',
-        role: 'student',
+        role: user.role || 'SEEKER',
       },
     });
 
-    return NextResponse.json({ profile: updated, message: 'Profile updated successfully' });
+    return NextResponse.json({
+      profile: {
+        ...updated,
+        avatarId: avatarId || updated.avatarId || 'avatar-male-1',
+        city: city || updated.city || 'Pune',
+        preferences: preferences || [],
+      },
+      message: 'Profile updated successfully',
+    });
   } catch (error: any) {
     console.error('Update profile error:', error);
     const msg = error?.message || 'Failed to update profile. Please try again.';

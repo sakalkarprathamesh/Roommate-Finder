@@ -7,7 +7,7 @@ import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function NotificationsPage() {
   usePageMeta({
-    title: 'Notifications | MIT-ADT Roommate Finder',
+    title: 'Notifications | Roomie',
     description: 'View your notifications and accommodation updates.',
     noindex: true,
   });
@@ -50,98 +50,75 @@ export default function NotificationsPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+      <div className="flex items-center justify-between pb-2 border-b border-[#DADCE0]">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#202124] tracking-tight">
             Notifications Center
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Real-time updates on contact requests, connection approvals, and listing activity.
+          <p className="text-xs sm:text-sm text-[#5F6368] mt-0.5">
+            Real-time updates on contact requests, connection approvals, and listing verifications.
           </p>
         </div>
 
         {unreadCount > 0 && (
           <button
             onClick={markAllRead}
-            className="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-900 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
+            className="px-3 py-1.5 bg-[#E8F0FE] hover:bg-[#D2E3FC] text-[#1A73E8] rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <CheckCheck className="w-4 h-4" />
-            Mark all as read
+            <span>Mark all read</span>
           </button>
         )}
       </div>
 
       {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 text-sm">
+        <div className="bg-white rounded-3xl border border-[#DADCE0] p-12 text-center text-[#5F6368] text-sm">
           Loading notifications...
         </div>
       ) : notifications.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
+        <div className="bg-white rounded-3xl border border-[#DADCE0] p-12 text-center space-y-3">
           <Bell className="w-10 h-10 text-slate-300 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-800">No notifications</h3>
-          <p className="text-xs text-slate-500">
-            You are all caught up with your MIT-ADT roommate updates.
+          <h2 className="text-base font-bold text-[#202124]">No notifications yet</h2>
+          <p className="text-xs text-[#5F6368] max-w-sm mx-auto">
+            When students send contact requests or admin reviews your listings, updates will appear here.
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 overflow-hidden shadow-sm">
+        <div className="space-y-3">
           {notifications.map((n) => (
             <div
               key={n.id}
-              className={`p-4 sm:p-5 flex items-start justify-between gap-4 transition-colors ${
-                !n.isRead ? 'bg-blue-50/50' : 'hover:bg-slate-50'
+              className={`p-4 sm:p-5 rounded-3xl border transition-all flex items-start justify-between gap-4 ${
+                !n.isRead
+                  ? 'bg-white border-[#1A73E8] shadow-xs ring-1 ring-[#1A73E8]/20'
+                  : 'bg-white border-[#DADCE0] opacity-80'
               }`}
             >
-              <div className="flex items-start gap-3.5 min-w-0">
-                <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                    n.type === 'REQUEST_RECEIVED'
-                      ? 'bg-amber-100 text-amber-700'
-                      : n.type === 'REQUEST_ACCEPTED'
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-slate-100 text-slate-700'
-                  }`}
-                >
-                  {n.type === 'REQUEST_RECEIVED' ? (
-                    <UserCheck className="w-5 h-5" />
-                  ) : n.type === 'REQUEST_ACCEPTED' ? (
-                    <Sparkles className="w-5 h-5" />
-                  ) : (
-                    <Bell className="w-5 h-5" />
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-xs text-[#202124]">{n.title}</span>
+                  {!n.isRead && (
+                    <span className="w-2 h-2 rounded-full bg-[#1A73E8]" />
                   )}
                 </div>
-
-                <div className="space-y-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
-                      {n.title}
-                    </h4>
-                    {!n.isRead && (
-                      <span className="w-2 h-2 rounded-full bg-brand-600 flex-shrink-0" />
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">{n.message}</p>
-                  <span className="text-[10px] text-slate-400 block pt-0.5">
-                    {new Date(n.createdAt).toLocaleDateString([], {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </span>
-                </div>
+                <p className="text-xs text-[#5F6368] leading-relaxed">{n.message}</p>
+                <span className="text-[10px] text-slate-400 block pt-1">
+                  {new Date(n.createdAt).toLocaleString()}
+                </span>
               </div>
 
-              {n.link && (
-                <Link
-                  href={n.link}
-                  onClick={() => markSingleRead(n.id)}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-900 hover:text-white text-slate-700 font-bold text-xs flex items-center gap-1 transition-colors flex-shrink-0 self-center"
-                >
-                  <span>View</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              )}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {n.link && (
+                  <Link
+                    href={n.link}
+                    onClick={() => markSingleRead(n.id)}
+                    className="px-3 py-1.5 bg-[#E8F0FE] hover:bg-[#D2E3FC] text-[#1A73E8] font-bold text-xs rounded-xl transition-colors flex items-center gap-1"
+                  >
+                    <span>View</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                )}
+              </div>
             </div>
           ))}
         </div>

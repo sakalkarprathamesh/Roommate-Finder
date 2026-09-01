@@ -8,7 +8,12 @@
 /out/
 
 # Production & environment variables
+.env
 .env*.local
+*.db
+*.db-journal
+*.pdf
+generate_pdf.py
 
 # Logs
 npm-debug.log*

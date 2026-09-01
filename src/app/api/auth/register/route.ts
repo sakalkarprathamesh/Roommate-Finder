@@ -17,10 +17,15 @@ export async function POST(req: Request) {
       confirmPassword,
       bio,
       profilePhotoUrl,
+      avatarId,
+      role,
+      roles,
+      city,
+      preferences,
       isDemo,
     } = body;
 
-    if (!fullName || !email || !phone || !school || !department || !year || !password) {
+    if (!fullName || !email || !phone || !password) {
       return NextResponse.json({ error: 'Please fill in all required fields' }, { status: 400 });
     }
 
@@ -59,11 +64,17 @@ export async function POST(req: Request) {
     // Step 2: Hash password with bcrypt
     const passwordHash = await hashPassword(password);
 
+    const assignedRole = role || 'SEEKER';
+    const rolesArray = Array.isArray(roles) ? JSON.stringify(roles) : JSON.stringify([assignedRole]);
+
     const newUser = await prisma.user.create({
       data: {
         email: cleanEmail,
         passwordHash,
-        role: 'student',
+        role: assignedRole,
+        roles: rolesArray,
+        city: city || 'Pune',
+        preferences: preferences ? (typeof preferences === 'string' ? preferences : JSON.stringify(preferences)) : null,
         isActive: true,
         isDemo: isDemoAccount,
         profile: {
@@ -71,16 +82,18 @@ export async function POST(req: Request) {
             name: fullName.trim(),
             email: cleanEmail,
             phone: phone.trim(),
-            school,
-            department,
-            year,
+            school: school || 'School of Computing',
+            department: department || 'Computer Science & Engineering',
+            year: year || '1st Year',
             division: division?.trim() || null,
             profilePhotoUrl: profilePhotoUrl?.trim() || null,
+            avatarId: avatarId || null,
+            city: city || 'Pune',
             bio: bio?.trim() || null,
             emailVerified: true,
             studentVerified: false,
             verificationStatus: 'verified',
-            role: 'student',
+            role: assignedRole,
           },
         },
       },
@@ -94,8 +107,8 @@ export async function POST(req: Request) {
         userId: newUser.id,
         type: 'SYSTEM',
         title: 'Welcome to Roomie!',
-        message: 'Your student account is active. Start exploring accommodations or post your listing!',
-        link: '/find',
+        message: 'Your account is active. Start exploring accommodations or manage your listings!',
+        link: assignedRole === 'PG_OWNER' ? '/pg/new' : assignedRole === 'FLAT_OWNER' ? '/flat/new' : '/find',
       },
     });
 
@@ -110,6 +123,8 @@ export async function POST(req: Request) {
         id: newUser.id,
         email: newUser.email,
         role: newUser.role,
+        roles: newUser.roles,
+        city: newUser.city,
         isDemo: newUser.isDemo,
         profile: newUser.profile,
       },

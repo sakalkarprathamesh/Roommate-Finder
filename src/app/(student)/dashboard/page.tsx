@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   PlusCircle,
   Building,
@@ -20,31 +20,50 @@ import {
   MessageSquare,
   History,
   Sparkles,
+  Users,
+  Search,
+  Building2,
+  FileCheck,
+  Heart,
 } from 'lucide-react';
 import { LISTING_TYPES } from '@/lib/constants';
 import { usePageMeta } from '@/hooks/usePageMeta';
 
-export default function StudentDashboard() {
+function DashboardContent() {
   usePageMeta({
-    title: 'Dashboard | MIT-ADT Roommate Finder',
-    description:
-      'Manage your student accommodation listings, connection requests, and occupied room history.',
+    title: 'Dashboard | Roomie',
+    description: 'Explore accommodations, manage your listings, and connect with flatmates.',
     noindex: true,
   });
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+
   const [profile, setProfile] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
   const [listings, setListings] = useState<any[]>([]);
+  const [savedListings, setSavedListings] = useState<any[]>([]);
   const [requests, setRequests] = useState<any>({ received: [], sent: [], connected: [] });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'active' | 'occupied_past'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'saved' | 'occupied_past'>('active');
+
+  // Sync tab with URL search parameter
+  useEffect(() => {
+    if (tabParam === 'saved') {
+      setActiveTab('saved');
+    } else if (tabParam === 'occupied' || tabParam === 'history') {
+      setActiveTab('occupied_past');
+    }
+  }, [tabParam]);
 
   const fetchDashboardData = async () => {
     try {
-      const [profRes, reqRes, listRes] = await Promise.all([
+      const [profRes, reqRes, listRes, meRes] = await Promise.all([
         fetch('/api/profile'),
         fetch('/api/contact-requests'),
         fetch('/api/listings?status=ALL'),
+        fetch('/api/auth/me'),
       ]);
 
       if (profRes.status === 401 || reqRes.status === 401) {
@@ -57,6 +76,11 @@ export default function StudentDashboard() {
         setProfile(pData.profile);
       }
 
+      if (meRes.ok) {
+        const meData = await meRes.json();
+        setUser(meData.user);
+      }
+
       if (reqRes.ok) {
         const rData = await reqRes.json();
         setRequests(rData);
@@ -66,6 +90,19 @@ export default function StudentDashboard() {
         const lData = await listRes.json();
         const allListings = lData.listings || [];
         setListings(allListings);
+
+        // Load saved listings from localStorage if any
+        try {
+          const savedIds = JSON.parse(localStorage.getItem('roomie_saved_listing_ids') || '[]');
+          if (Array.isArray(savedIds) && savedIds.length > 0) {
+            const matchedSaved = allListings.filter((l: any) => savedIds.includes(l.id));
+            setSavedListings(matchedSaved);
+          } else {
+            setSavedListings([]);
+          }
+        } catch {
+          setSavedListings([]);
+        }
       }
     } catch {
       // handle error
@@ -93,21 +130,6 @@ export default function StudentDashboard() {
     }
   };
 
-  const handleOccupyAction = async (listingId: string, action: string) => {
-    try {
-      const res = await fetch(`/api/listings/${listingId}/occupy`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
-      });
-      if (res.ok) {
-        fetchDashboardData();
-      }
-    } catch {
-      // handle error
-    }
-  };
-
   const handleDelete = async (listingId: string) => {
     if (!confirm('Are you sure you want to delete this listing?')) return;
     try {
@@ -120,13 +142,9 @@ export default function StudentDashboard() {
     }
   };
 
-  const currentUserId = profile?.userId || profile?.id;
+  const currentUserId = user?.id || profile?.userId || profile?.id;
   const connectedListingIds = new Set((requests.connected || []).map((c: any) => c.listingId));
 
-  // Filter listings where current user is:
-  // 1. The listing OWNER
-  // 2. The explicit OCCUPIED PARTNER
-  // 3. An ACCEPTED connected roommate on this listing (covers listings marked occupied prior to recent updates)
   const userListings = listings.filter((l) => {
     if (!currentUserId) return true;
     const isOwner = l.ownerId === currentUserId || l.owner?.id === currentUserId;
@@ -137,17 +155,15 @@ export default function StudentDashboard() {
     return isOwner || isOccupiedPartner || isConnectedPartner;
   });
 
-  // Tab 1: ONLY Active Listings (default view)
   const activeListings = userListings.filter((l) => {
     const statusUpper = l.status?.toUpperCase();
     return (
-      statusUpper === 'ACTIVE' &&
+      (statusUpper === 'ACTIVE' || statusUpper === 'VERIFIED') &&
       new Date(l.expiresAt) >= new Date() &&
       !l.occupiedConfirmedAt
     );
   });
 
-  // Tab 2: Occupied & Past Listings (both new and legacy occupied data)
   const occupiedListings = userListings.filter((l) => {
     const statusUpper = l.status?.toUpperCase();
     return (
@@ -157,57 +173,146 @@ export default function StudentDashboard() {
     );
   });
 
-  const pastOtherListings = userListings.filter((l) => {
-    const statusUpper = l.status?.toUpperCase();
-    return (
-      statusUpper === 'EXPIRED' ||
-      (statusUpper === 'ACTIVE' && new Date(l.expiresAt) < new Date()) ||
-      (statusUpper === 'FILLED' && !connectedListingIds.has(l.id))
-    );
-  });
-
-  const occupiedAndPastListings = [...occupiedListings, ...pastOtherListings];
-
-  const pendingReceived = (requests.received || []).filter((r: any) => r.status === 'PENDING');
-  const connectedList = requests.connected || [];
+  const isPGOwner = user?.role === 'PG_OWNER';
+  const isFlatOwner = user?.role === 'FLAT_OWNER';
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Welcome Header */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="space-y-2">
+      {/* Welcome Banner */}
+      <div className="bg-white dark:bg-[#303134] rounded-3xl border border-[#DADCE0] dark:border-[#3C4043] p-6 sm:p-8 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
-              Welcome, {profile?.name || 'MIT-ADT Student'} 👋
+            <h1 className="text-2xl sm:text-3xl font-black text-[#202124] dark:text-[#FFFFFF] tracking-tight">
+              Welcome, {profile?.name || 'Roomie Student'} 👋
             </h1>
-            <span className="px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-lg flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              Email Verified Account
+            <span className="px-2.5 py-0.5 bg-[#E6F4EA] dark:bg-[#133E26] border border-[#CEEAD6] dark:border-[#1E5E3A] text-[#137333] dark:text-[#81C995] text-xs font-bold rounded-full flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#34A853] dark:text-[#81C995]" />
+              {isPGOwner ? 'PG Owner Account' : isFlatOwner ? 'Flat Owner Account' : 'Verified Student'}
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500">
-            {profile?.department} • {profile?.year} • {profile?.school}
+          <p className="text-xs sm:text-sm text-[#5F6368] dark:text-[#BDC1C6]">
+            {profile?.department ? `${profile.department} • ` : ''}{profile?.year ? `${profile.year} • ` : ''}{profile?.school || 'MIT-ADT University'}
           </p>
         </div>
 
-        <Link
-          href="/listings/new"
-          className="px-5 py-3 bg-brand-900 hover:bg-brand-800 text-white font-bold text-xs rounded-2xl shadow-xs transition-all flex items-center gap-2 self-start sm:self-auto"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>Post a Listing</span>
-        </Link>
+        {/* Primary Role Action */}
+        {isPGOwner ? (
+          <Link
+            href="/manage/pg"
+            className="px-5 py-3 bg-[#1A73E8] hover:bg-[#1557B0] text-white font-bold text-xs rounded-2xl shadow-xs transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+          >
+            <Building className="w-4 h-4" />
+            <span>Manage Your PG</span>
+          </Link>
+        ) : isFlatOwner ? (
+          <Link
+            href="/manage/flat"
+            className="px-5 py-3 bg-[#1A73E8] hover:bg-[#1557B0] text-white font-bold text-xs rounded-2xl shadow-xs transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+          >
+            <Home className="w-4 h-4" />
+            <span>Manage Your Flat</span>
+          </Link>
+        ) : (
+          <Link
+            href="/listings/new"
+            className="px-5 py-3 bg-[#1A73E8] hover:bg-[#1557B0] text-white font-bold text-xs rounded-2xl shadow-xs transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Post a Vacancy</span>
+          </Link>
+        )}
       </div>
 
-      {/* KPI Overview Metrics */}
+      {/* 🌟 PROMINENT SEEKER DISCOVERY SECTION: STANDALONE 3 CARDS */}
+      {!isPGOwner && !isFlatOwner && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-black text-[#202124] dark:text-[#FFFFFF] tracking-tight flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#1A73E8] dark:text-[#8AB4F8]" />
+              <span>Explore Accommodations & Roommates</span>
+            </h2>
+            <span className="text-xs text-[#5F6368] dark:text-[#BDC1C6]">Instant 1-Click Discovery</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Card 1: Find a Flat */}
+            <Link
+              href="/find?accommodationType=Flat"
+              className="bg-white dark:bg-[#303134] rounded-3xl border border-[#DADCE0] dark:border-[#3C4043] p-6 hover:border-[#1A73E8] dark:hover:border-[#8AB4F8] hover:shadow-md transition-all group flex flex-col justify-between space-y-4"
+            >
+              <div className="space-y-2">
+                <div className="w-12 h-12 rounded-2xl bg-[#E8F0FE] dark:bg-[#1E3A5F] text-[#1A73E8] dark:text-[#8AB4F8] flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                  🏠
+                </div>
+                <h3 className="text-lg font-black text-[#202124] dark:text-[#FFFFFF] group-hover:text-[#1A73E8] dark:group-hover:text-[#8AB4F8] transition-colors">
+                  FIND A FLAT
+                </h3>
+                <p className="text-xs text-[#5F6368] dark:text-[#BDC1C6] leading-relaxed">
+                  Find available flats based on location, budget and preferences.
+                </p>
+              </div>
+              <div className="flex items-center text-xs font-bold text-[#1A73E8] dark:text-[#8AB4F8] gap-1 pt-2">
+                <span>Browse Flats</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* Card 2: Find a PG */}
+            <Link
+              href="/find?accommodationType=PG"
+              className="bg-white dark:bg-[#303134] rounded-3xl border border-[#DADCE0] dark:border-[#3C4043] p-6 hover:border-[#1A73E8] dark:hover:border-[#8AB4F8] hover:shadow-md transition-all group flex flex-col justify-between space-y-4"
+            >
+              <div className="space-y-2">
+                <div className="w-12 h-12 rounded-2xl bg-[#E8F0FE] dark:bg-[#1E3A5F] text-[#1A73E8] dark:text-[#8AB4F8] flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                  🏢
+                </div>
+                <h3 className="text-lg font-black text-[#202124] dark:text-[#FFFFFF] group-hover:text-[#1A73E8] dark:group-hover:text-[#8AB4F8] transition-colors">
+                  FIND A PG
+                </h3>
+                <p className="text-xs text-[#5F6368] dark:text-[#BDC1C6] leading-relaxed">
+                  Discover verified PGs near your preferred location.
+                </p>
+              </div>
+              <div className="flex items-center text-xs font-bold text-[#1A73E8] dark:text-[#8AB4F8] gap-1 pt-2">
+                <span>Discover PGs</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* Card 3: Find Flatmates */}
+            <Link
+              href="/find?listingType=NEED_ROOMMATE"
+              className="bg-white dark:bg-[#303134] rounded-3xl border border-[#DADCE0] dark:border-[#3C4043] p-6 hover:border-[#1A73E8] dark:hover:border-[#8AB4F8] hover:shadow-md transition-all group flex flex-col justify-between space-y-4"
+            >
+              <div className="space-y-2">
+                <div className="w-12 h-12 rounded-2xl bg-[#E8F0FE] dark:bg-[#1E3A5F] text-[#1A73E8] dark:text-[#8AB4F8] flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                  👥
+                </div>
+                <h3 className="text-lg font-black text-[#202124] dark:text-[#FFFFFF] group-hover:text-[#1A73E8] dark:group-hover:text-[#8AB4F8] transition-colors">
+                  FIND FLATMATES
+                </h3>
+                <p className="text-xs text-[#5F6368] dark:text-[#BDC1C6] leading-relaxed">
+                  Find compatible roommates based on lifestyle preferences.
+                </p>
+              </div>
+              <div className="flex items-center text-xs font-bold text-[#1A73E8] dark:text-[#8AB4F8] gap-1 pt-2">
+                <span>Match Flatmates</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* KPI Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-1">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Listings</span>
+        <div className="bg-white dark:bg-[#303134] rounded-3xl border border-[#DADCE0] dark:border-[#3C4043] p-5 shadow-2xs space-y-1">
+          <span className="text-xs font-bold text-[#5F6368] dark:text-[#BDC1C6] uppercase tracking-wider">Active Listings</span>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900">
+            <span className="text-2xl sm:text-3xl font-black text-[#202124] dark:text-[#FFFFFF]">
               {activeListings.length}
             </span>
-            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+            <span className="text-xs font-semibold text-[#137333] dark:text-[#81C995] bg-[#E6F4EA] dark:bg-[#133E26] px-2.5 py-0.5 rounded-full">
               Available Now
             </span>
           </div>
@@ -215,322 +320,243 @@ export default function StudentDashboard() {
 
         <Link
           href="/inbox"
-          className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-1 hover:border-brand-300 transition-colors block"
+          className="bg-white dark:bg-[#303134] rounded-3xl border border-[#DADCE0] dark:border-[#3C4043] p-5 shadow-2xs space-y-1 hover:border-[#1A73E8] dark:hover:border-[#8AB4F8] transition-colors block"
         >
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            Contact Requests
+          <span className="text-xs font-bold text-[#5F6368] dark:text-[#BDC1C6] uppercase tracking-wider">
+            Connected Students
           </span>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-black text-brand-900">
-              {pendingReceived.length}
+            <span className="text-2xl sm:text-3xl font-black text-[#1A73E8] dark:text-[#8AB4F8]">
+              {requests.connected?.length || 0}
             </span>
-            <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
-              Pending Review
+            <span className="text-xs font-semibold text-[#1A73E8] dark:text-[#8AB4F8] bg-[#E8F0FE] dark:bg-[#1E3A5F] px-2.5 py-0.5 rounded-full flex items-center gap-1">
+              <UserCheck className="w-3 h-3" />
+              Chat Unlocked
             </span>
           </div>
         </Link>
 
         <Link
           href="/inbox"
-          className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-1 hover:border-emerald-300 transition-colors block"
+          className="bg-white dark:bg-[#303134] rounded-3xl border border-[#DADCE0] dark:border-[#3C4043] p-5 shadow-2xs space-y-1 hover:border-[#1A73E8] dark:hover:border-[#8AB4F8] transition-colors block"
         >
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            Accepted Connections
+          <span className="text-xs font-bold text-[#5F6368] dark:text-[#BDC1C6] uppercase tracking-wider">
+            Pending Inquiries
           </span>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl sm:text-3xl font-black text-emerald-700">
-              {connectedList.length}
+            <span className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-[#FDD663]">
+              {(requests.received || []).filter((r: any) => r.status === 'PENDING').length}
             </span>
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-              Chat & Contacts
+            <span className="text-xs font-semibold text-amber-800 dark:text-[#FDD663] bg-amber-50 dark:bg-[#3B3116] px-2.5 py-0.5 rounded-full">
+              Action Required
             </span>
           </div>
         </Link>
       </div>
 
-      {/* Separated Dashboard Sections (Active Listings vs Occupied / Past Listings) */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h2 className="text-lg sm:text-xl font-black text-slate-900">My Accommodation Listings</h2>
+      {/* Listings Management Tabs */}
+      <div className="bg-white dark:bg-[#303134] rounded-3xl border border-[#DADCE0] dark:border-[#3C4043] overflow-hidden shadow-2xs">
+        <div className="p-6 border-b border-[#DADCE0] dark:border-[#3C4043] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-black text-[#202124] dark:text-[#FFFFFF]">My Accommodations & History</h2>
+            <p className="text-xs text-[#5F6368] dark:text-[#BDC1C6]">Manage your vacancies, active postings, and connection status.</p>
+          </div>
 
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setActiveTab('active')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'active'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#1A73E8] dark:bg-[#8AB4F8] text-white dark:text-[#202124] shadow-xs'
+                  : 'text-[#5F6368] dark:text-[#BDC1C6] hover:bg-slate-100 dark:hover:bg-[#3C4043]'
               }`}
             >
-              <Building className="w-3.5 h-3.5 text-brand-700" />
-              Active Listings ({activeListings.length})
+              Active ({activeListings.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('saved')}
+              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'saved'
+                  ? 'bg-[#1A73E8] dark:bg-[#8AB4F8] text-white dark:text-[#202124] shadow-xs'
+                  : 'text-[#5F6368] dark:text-[#BDC1C6] hover:bg-slate-100 dark:hover:bg-[#3C4043]'
+              }`}
+            >
+              <Heart className="w-3.5 h-3.5" />
+              <span>Saved Listings ({savedListings.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('occupied_past')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'occupied_past'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#1A73E8] dark:bg-[#8AB4F8] text-white dark:text-[#202124] shadow-xs'
+                  : 'text-[#5F6368] dark:text-[#BDC1C6] hover:bg-slate-100 dark:hover:bg-[#3C4043]'
               }`}
             >
-              <History className="w-3.5 h-3.5 text-slate-500" />
-              Occupied / Past Listings ({occupiedAndPastListings.length})
+              Occupied & History ({occupiedListings.length})
             </button>
           </div>
         </div>
 
-        {/* SECTION 1: Active Listings (Default View) */}
-        {loading ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 text-xs">
-            Loading your listings...
-          </div>
-        ) : activeTab === 'active' ? (
-          activeListings.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-3">
-              <Building className="w-8 h-8 text-slate-300 mx-auto" />
-              <p className="text-xs font-bold text-slate-800">No active listings currently.</p>
-              <p className="text-xs text-slate-500">Post a new accommodation listing to find flatmates or fill vacancies!</p>
-              <Link
-                href="/listings/new"
-                className="inline-block px-4 py-2 bg-brand-900 text-white font-bold text-xs rounded-xl shadow-xs hover:bg-brand-800"
-              >
-                + Create a Listing
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {activeListings.map((l) => (
-                <div key={l.id} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-2xs">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-emerald-50 text-emerald-800 rounded border border-emerald-200">
-                        Active • Expires {new Date(l.expiresAt).toLocaleDateString()}
-                      </span>
-                      <Link href={`/listings/${l.id}`} className="block font-bold text-slate-900 text-sm mt-1 hover:text-brand-700">
-                        {l.title}
-                      </Link>
-                    </div>
-                    <span className="font-black text-slate-900 text-base">₹{l.rent.toLocaleString('en-IN')}/mo</span>
-                  </div>
-
-                  <div className="text-xs text-slate-500 flex items-center gap-3">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-red-500" />
-                      {l.location}
-                    </span>
-                    <span>•</span>
-                    <span>{l.accommodationType} ({l.roomType})</span>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/listings/${l.id}/edit`}
-                        className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-200 flex items-center gap-1"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                        Edit
-                      </Link>
-                      <button
-                        onClick={() => handleStatusAction(l.id, 'mark_filled')}
-                        className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-200 flex items-center gap-1"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        Mark Filled
-                      </button>
-                    </div>
-
-                    <button
-                      onClick={() => handleDelete(l.id)}
-                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                      title="Delete Listing"
+        <div className="p-6">
+          {/* TAB 1: ACTIVE LISTINGS */}
+          {activeTab === 'active' && (
+            <div>
+              {activeListings.length === 0 ? (
+                <div className="py-12 text-center space-y-3">
+                  <Building2 className="w-12 h-12 text-slate-300 dark:text-[#5F6368] mx-auto" />
+                  <h3 className="font-bold text-[#202124] dark:text-[#FFFFFF] text-sm">No active listings</h3>
+                  <p className="text-xs text-[#5F6368] dark:text-[#BDC1C6] max-w-sm mx-auto">
+                    {isPGOwner
+                      ? 'You have not added any PG accommodations yet.'
+                      : isFlatOwner
+                      ? 'You have not added any flat listings yet.'
+                      : 'You have not posted any room or flatmate vacancies yet.'}
+                  </p>
+                  <div className="pt-2">
+                    <Link
+                      href={isPGOwner ? '/pg/new' : isFlatOwner ? '/flat/new' : '/listings/new'}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1A73E8] text-white font-bold text-xs rounded-2xl shadow-xs hover:bg-[#1557B0] transition-colors"
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                      <PlusCircle className="w-3.5 h-3.5" />
+                      <span>{isPGOwner ? 'Add PG' : isFlatOwner ? 'Add Flat' : 'Post Vacancy'}</span>
+                    </Link>
                   </div>
                 </div>
-              ))}
-            </div>
-          )
-        ) : (
-          /* SECTION 2: Occupied / Past Listings Tab */
-          occupiedAndPastListings.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 text-xs">
-              No occupied or past listings found. Once listings reach occupied status with a roommate, they will be archived here.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {occupiedAndPastListings.map((l) => {
-                const isOccupied =
-                  l.status?.toUpperCase() === 'OCCUPIED' ||
-                  Boolean(l.occupiedConfirmedAt) ||
-                  (l.status?.toUpperCase() === 'FILLED' && connectedListingIds.has(l.id));
-
-                const isExpired =
-                  l.status?.toUpperCase() === 'EXPIRED' ||
-                  (l.status?.toUpperCase() === 'ACTIVE' && new Date(l.expiresAt) < new Date());
-
-                const isFilled = l.status?.toUpperCase() === 'FILLED' && !isOccupied;
-                const isOwner = l.ownerId === currentUserId || l.owner?.id === currentUserId;
-
-                return (
-                  <div key={l.id} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-2xs">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {isOccupied ? (
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-slate-900 text-white rounded flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                              Occupied Space
-                            </span>
-                          ) : isFilled ? (
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-slate-100 text-slate-700 rounded">
-                              Filled
-                            </span>
-                          ) : (
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-red-50 text-red-700 rounded border border-red-200">
-                              Expired
-                            </span>
-                          )}
-
-                          {isOccupied && l.occupiedConfirmedAt && (
-                            <span className="text-[11px] text-slate-400">
-                              Confirmed {new Date(l.occupiedConfirmedAt).toLocaleDateString()}
-                            </span>
-                          )}
-                        </div>
-
-                        <h4 className="font-bold text-slate-900 text-sm mt-1">{l.title}</h4>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          {l.location} • ₹{l.rent.toLocaleString('en-IN')}/mo
-                          {!isOwner && (
-                            <span className="ml-1 text-emerald-700 font-semibold">• Matched Roommate</span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                      {isOccupied ? (
-                        isOwner ? (
-                          /* Owner Reopen for Occupied Listings */
-                          <button
-                            onClick={() => handleOccupyAction(l.id, 'reopen')}
-                            className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5 text-blue-700" />
-                            Reopen this listing
-                          </button>
-                        ) : (
-                          <span className="text-xs text-emerald-800 font-semibold flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            Connected & Confirmed
+              ) : (
+                <div className="space-y-4">
+                  {activeListings.map((l) => (
+                    <div
+                      key={l.id}
+                      className="p-5 rounded-2xl border border-[#DADCE0] dark:border-[#3C4043] bg-[#F8F9FA] dark:bg-[#202124] hover:bg-white dark:hover:bg-[#303134] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[#202124] dark:text-[#FFFFFF] text-sm">{l.title}</span>
+                          <span className="px-2 py-0.5 rounded-full bg-[#E6F4EA] dark:bg-[#133E26] text-[#137333] dark:text-[#81C995] font-bold text-[10px]">
+                            {l.status}
                           </span>
-                        )
-                      ) : isExpired ? (
-                        <button
-                          onClick={() => handleStatusAction(l.id, 'renew')}
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg flex items-center gap-1"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                          Renew for 30 Days
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleStatusAction(l.id, 'mark_active')}
-                          className="px-3 py-1.5 bg-brand-50 text-brand-900 text-xs font-bold rounded-lg"
-                        >
-                          Re-open as Active
-                        </button>
-                      )}
+                        </div>
+                        <div className="text-[#5F6368] dark:text-[#BDC1C6] flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{l.location} • ₹{l.rent?.toLocaleString('en-IN')}/mo</span>
+                        </div>
+                      </div>
 
-                      {isOwner && (
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/listings/${l.id}`}
+                          className="px-3.5 py-1.5 bg-white dark:bg-[#3C4043] border border-[#DADCE0] dark:border-[#5F6368] text-[#202124] dark:text-[#FFFFFF] font-bold text-xs rounded-xl hover:bg-slate-50 transition-colors"
+                        >
+                          View Details
+                        </Link>
                         <button
                           onClick={() => handleDelete(l.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          className="p-2 text-[#EA4335] dark:text-[#F28B82] hover:bg-rose-50 dark:hover:bg-[#3C1E1E] rounded-xl transition-colors cursor-pointer"
                           title="Delete Listing"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )
-        )}
-      </div>
-
-      {/* Bottom Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-            <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-              <Inbox className="w-4 h-4 text-brand-700" />
-              Recent Received Requests
-            </h3>
-            <Link href="/inbox" className="text-xs font-bold text-brand-700 hover:underline">
-              View All
-            </Link>
-          </div>
-
-          {pendingReceived.length === 0 ? (
-            <p className="text-xs text-slate-400 py-4 text-center">No pending contact requests.</p>
-          ) : (
-            <div className="space-y-2">
-              {pendingReceived.slice(0, 3).map((r: any) => (
-                <div key={r.id} className="p-3 bg-slate-50 rounded-xl flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-bold text-slate-900">{r.sender.profile.name}</span>
-                    <p className="text-[11px] text-slate-500 line-clamp-1">{r.listingTitle}</p>
-                  </div>
-                  <Link
-                    href="/inbox"
-                    className="px-3 py-1 bg-brand-900 text-white font-bold text-[11px] rounded-lg"
-                  >
-                    Review
-                  </Link>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
-        </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-            <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-              <UserCheck className="w-4 h-4 text-emerald-600" />
-              Connected Roommates & Chat
-            </h3>
-            <Link href="/inbox" className="text-xs font-bold text-brand-700 hover:underline">
-              View All
-            </Link>
-          </div>
-
-          {connectedList.length === 0 ? (
-            <p className="text-xs text-slate-400 py-4 text-center">No approved connections yet.</p>
-          ) : (
-            <div className="space-y-2">
-              {connectedList.slice(0, 3).map((c: any) => (
-                <div key={c.id} className="p-3 bg-emerald-50/70 border border-emerald-100 rounded-xl flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-bold text-slate-900">{c.contact.profile.name}</span>
-                    <p className="text-[11px] text-slate-500">{c.contact.profile.department}</p>
+          {/* 🌟 TAB 2: SAVED LISTINGS (EMPTY STATE: "No shared listings") */}
+          {activeTab === 'saved' && (
+            <div>
+              {savedListings.length === 0 ? (
+                <div className="py-12 text-center space-y-3">
+                  <Building2 className="w-12 h-12 text-slate-300 dark:text-[#5F6368] mx-auto" />
+                  <h3 className="font-bold text-[#202124] dark:text-[#FFFFFF] text-sm">
+                    No shared listings
+                  </h3>
+                  <p className="text-xs text-[#5F6368] dark:text-[#BDC1C6] max-w-sm mx-auto">
+                    You haven&apos;t saved or shared any accommodation listings yet.
+                  </p>
+                  <div className="pt-2">
+                    <Link
+                      href="/find"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1A73E8] text-white font-bold text-xs rounded-2xl shadow-xs hover:bg-[#1557B0] transition-colors"
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                      <span>Explore Accommodations</span>
+                    </Link>
                   </div>
-                  <Link
-                    href="/inbox"
-                    className="font-bold text-brand-900 bg-white px-2.5 py-1 rounded-lg border border-brand-200 text-xs flex items-center gap-1"
-                  >
-                    <MessageSquare className="w-3 h-3 text-brand-700" />
-                    Chat
-                  </Link>
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-4">
+                  {savedListings.map((l) => (
+                    <div
+                      key={l.id}
+                      className="p-5 rounded-2xl border border-[#DADCE0] dark:border-[#3C4043] bg-[#F8F9FA] dark:bg-[#202124] hover:bg-white dark:hover:bg-[#303134] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[#202124] dark:text-[#FFFFFF] text-sm">{l.title}</span>
+                          <span className="px-2 py-0.5 rounded-full bg-[#E8F0FE] dark:bg-[#1E3A5F] text-[#1A73E8] dark:text-[#8AB4F8] font-bold text-[10px]">
+                            Saved
+                          </span>
+                        </div>
+                        <div className="text-[#5F6368] dark:text-[#BDC1C6] flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{l.location} • ₹{l.rent?.toLocaleString('en-IN')}/mo</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/listings/${l.id}`}
+                          className="px-3.5 py-1.5 bg-white dark:bg-[#3C4043] border border-[#DADCE0] dark:border-[#5F6368] text-[#202124] dark:text-[#FFFFFF] font-bold text-xs rounded-xl hover:bg-slate-50 transition-colors"
+                        >
+                          View Details
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: OCCUPIED & HISTORY */}
+          {activeTab === 'occupied_past' && (
+            <div>
+              {occupiedListings.length === 0 ? (
+                <div className="py-12 text-center text-[#5F6368] dark:text-[#BDC1C6] text-xs">
+                  No occupied accommodation history recorded yet.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {occupiedListings.map((l) => (
+                    <div
+                      key={l.id}
+                      className="p-5 rounded-2xl border border-[#DADCE0] dark:border-[#3C4043] bg-[#F8F9FA] dark:bg-[#202124] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs opacity-90"
+                    >
+                      <div className="space-y-1">
+                        <div className="font-bold text-[#202124] dark:text-[#FFFFFF] text-sm">{l.title}</div>
+                        <div className="text-[#5F6368] dark:text-[#BDC1C6]">
+                          {l.location} • ₹{l.rent?.toLocaleString('en-IN')}/mo • <span className="font-bold text-[#137333] dark:text-[#81C995]">Occupied & Filled</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="max-w-6xl mx-auto px-4 py-20 text-center text-xs font-bold text-[#5F6368] dark:text-[#BDC1C6]">Loading Dashboard...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }

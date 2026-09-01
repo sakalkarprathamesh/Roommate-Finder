@@ -8,7 +8,7 @@ import {
   ROOM_TYPES,
   PUNE_AREAS,
 } from '@/lib/constants';
-import { Save, AlertCircle, CheckCircle2, Building, Calendar, IndianRupee, Users } from 'lucide-react';
+import { Save, AlertCircle, CheckCircle2, Building, Calendar, IndianRupee, Users, ArrowRight } from 'lucide-react';
 
 interface ListingFormProps {
   initialData?: any;
@@ -29,7 +29,7 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
     currentOccupants: initialData?.currentOccupants || 2,
     vacancies: initialData?.vacancies || 1,
     totalCapacity: initialData?.totalCapacity || 3,
-    moveInDate: initialData?.moveInDate || 'September 2026',
+    moveInDate: initialData?.moveInDate || 'Immediately',
     description: initialData?.description || '',
     status: initialData?.status || 'ACTIVE',
   });
@@ -48,7 +48,6 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
     setError('');
     setSuccess('');
 
-    // Validations
     if (formData.rent < 0 || formData.deposit < 0 || formData.currentOccupants < 0 || formData.vacancies < 0 || formData.totalCapacity < 1) {
       setError('Rent, deposit, occupants and vacancies cannot be negative, and capacity must be at least 1');
       setLoading(false);
@@ -66,6 +65,7 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
       });
 
       const data = await res.json();
+
       if (res.status === 401) {
         setError('Please log in or register to publish an accommodation listing.');
         setTimeout(() => {
@@ -93,24 +93,24 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
   const isVacancyType = formData.listingType === 'HAVE_VACANCY' || formData.listingType === 'HAVE_ROOM';
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-[#DADCE0] p-6 sm:p-8 shadow-sm space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold p-3.5 rounded-xl flex items-center gap-2">
+        <div className="bg-[#FCE8E6] border border-[#FAD2CF] text-[#C5221F] text-xs font-semibold p-3.5 rounded-2xl flex items-center gap-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          {error}
+          <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold p-3.5 rounded-xl flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-          {success}
+        <div className="bg-[#E6F4EA] border border-[#CEEAD6] text-[#137333] text-xs font-semibold p-3.5 rounded-2xl flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-[#34A853] flex-shrink-0" />
+          <span>{success}</span>
         </div>
       )}
 
       {/* 1. Primary Listing Type */}
-      <div>
-        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+      <div className="space-y-2">
+        <label className="block text-xs font-bold text-[#202124]">
           What type of listing are you creating? *
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -119,22 +119,22 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
               key={key}
               type="button"
               onClick={() => handleChange('listingType', key)}
-              className={`p-3.5 rounded-2xl border text-left font-bold text-xs transition-all flex items-center justify-between ${
+              className={`p-3.5 rounded-2xl border text-left font-bold text-xs transition-all flex items-center justify-between cursor-pointer ${
                 formData.listingType === key
-                  ? 'border-brand-900 bg-brand-50 text-brand-900 ring-2 ring-brand-900/20 shadow-2xs'
-                  : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                  ? 'border-[#1A73E8] bg-[#E8F0FE] text-[#1A73E8] ring-2 ring-[#1A73E8]/20 shadow-2xs'
+                  : 'border-[#DADCE0] hover:bg-slate-50 text-[#202124]'
               }`}
             >
               <span>{label}</span>
-              {formData.listingType === key && <CheckCircle2 className="w-4 h-4 text-brand-700" />}
+              {formData.listingType === key && <CheckCircle2 className="w-4 h-4 text-[#1A73E8]" />}
             </button>
           ))}
         </div>
       </div>
 
       {/* 2. Listing Title */}
-      <div>
-        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+      <div className="space-y-1">
+        <label className="block text-xs font-bold text-[#202124]">
           Listing Headline / Title *
         </label>
         <input
@@ -144,23 +144,23 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
           onChange={(e) => handleChange('title', e.target.value)}
           placeholder={
             isVacancyType
-              ? 'e.g. 1 Vacancy in 2BHK Flat near Gate 2'
+              ? 'e.g. 1 Vacancy in 2BHK Flat near MIT-ADT Campus'
               : 'e.g. Looking for 1 Roommate for flat in Loni Kalbhor'
           }
-          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:border-brand-600 focus:outline-none"
+          className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
         />
       </div>
 
       {/* 3. Accommodation & Room Type */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-            Accommodation Type *
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-[#202124]">
+            Accommodation *
           </label>
           <select
             value={formData.accommodationType}
             onChange={(e) => handleChange('accommodationType', e.target.value)}
-            className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:border-brand-600 focus:outline-none"
+            className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold cursor-pointer"
           >
             {ACCOMMODATION_TYPES.map((t) => (
               <option key={t} value={t}>
@@ -170,14 +170,14 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
           </select>
         </div>
 
-        <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-[#202124]">
             Room Type *
           </label>
           <select
             value={formData.roomType}
             onChange={(e) => handleChange('roomType', e.target.value)}
-            className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:border-brand-600 focus:outline-none"
+            className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold cursor-pointer"
           >
             {ROOM_TYPES.map((r) => (
               <option key={r} value={r}>
@@ -187,14 +187,14 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
           </select>
         </div>
 
-        <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-            Area / General Location *
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-[#202124]">
+            Campus Area Location *
           </label>
           <select
             value={formData.location}
             onChange={(e) => handleChange('location', e.target.value)}
-            className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:border-brand-600 focus:outline-none"
+            className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold cursor-pointer"
           >
             {PUNE_AREAS.map((a) => (
               <option key={a} value={a}>
@@ -205,132 +205,108 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
         </div>
       </div>
 
-      {/* 4. Financials: Rent & Deposit */}
+      {/* 4. Pricing */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-            Monthly Rent (₹ / person) *
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-[#202124]">
+            Monthly Rent per Person (₹) *
           </label>
-          <input
-            type="number"
-            min="0"
-            required
-            value={formData.rent}
-            onChange={(e) => handleChange('rent', parseInt(e.target.value, 10))}
-            placeholder="e.g. 7500"
-            className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:border-brand-600 focus:outline-none"
-          />
+          <div className="relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
+            <input
+              type="number"
+              required
+              min="0"
+              value={formData.rent}
+              onChange={(e) => handleChange('rent', parseInt(e.target.value, 10) || 0)}
+              className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 pl-8 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
+            />
+          </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-            Security Deposit (₹)
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-[#202124]">
+            Deposit (If Any) (₹)
           </label>
-          <input
-            type="number"
-            min="0"
-            value={formData.deposit}
-            onChange={(e) => handleChange('deposit', parseInt(e.target.value, 10))}
-            placeholder="e.g. 15000"
-            className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:border-brand-600 focus:outline-none"
-          />
-        </div>
-      </div>
-
-      {/* 5. Dynamic Vacancies & Occupancy */}
-      {isVacancyType ? (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Current Occupants
-            </label>
+          <div className="relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
             <input
               type="number"
               min="0"
-              value={formData.currentOccupants}
-              onChange={(e) => handleChange('currentOccupants', parseInt(e.target.value, 10))}
-              className="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Vacancies Available *
-            </label>
-            <input
-              type="number"
-              min="1"
-              required
-              value={formData.vacancies}
-              onChange={(e) => handleChange('vacancies', parseInt(e.target.value, 10))}
-              className="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Total Flat Capacity
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={formData.totalCapacity}
-              onChange={(e) => handleChange('totalCapacity', parseInt(e.target.value, 10))}
-              className="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5"
+              value={formData.deposit}
+              onChange={(e) => handleChange('deposit', parseInt(e.target.value, 10) || 0)}
+              className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 pl-8 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
             />
           </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Move-in Date / Timeline *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.moveInDate}
-              onChange={(e) => handleChange('moveInDate', e.target.value)}
-              placeholder="e.g. September 2026 / Immediately"
-              className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:border-brand-600 focus:outline-none"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* 6. Description */}
-      <div>
-        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-          Description & Details *
-        </label>
-        <textarea
-          rows={4}
-          required
-          value={formData.description}
-          onChange={(e) => handleChange('description', e.target.value)}
-          placeholder="Describe amenities (WiFi, maid, washing machine, parking), flat environment, distance to MIT-ADT main gate, and preferences..."
-          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:border-brand-600 focus:outline-none"
-        />
-        <span className="text-[11px] text-slate-400 mt-1 block">
-          🔒 For your privacy, do not write your phone number or flat number in the public description.
-        </span>
       </div>
 
-      <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100"
-        >
-          Cancel
-        </button>
+      {/* 5. Occupancy Details */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-[#202124]">
+            Current Occupants
+          </label>
+          <input
+            type="number"
+            min="0"
+            value={formData.currentOccupants}
+            onChange={(e) => handleChange('currentOccupants', parseInt(e.target.value, 10) || 0)}
+            className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-[#202124]">
+            Available Vacancies
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={formData.vacancies}
+            onChange={(e) => handleChange('vacancies', parseInt(e.target.value, 10) || 1)}
+            className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-[#202124]">
+            Move-in Date / Period
+          </label>
+          <input
+            type="text"
+            value={formData.moveInDate}
+            onChange={(e) => handleChange('moveInDate', e.target.value)}
+            placeholder="e.g. Immediately"
+            className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
+          />
+        </div>
+      </div>
+
+      {/* 6. Description */}
+      <div className="space-y-1">
+        <label className="block text-xs font-bold text-[#202124]">
+          Detailed Description & Student Preferences *
+        </label>
+        <textarea
+          required
+          rows={4}
+          value={formData.description}
+          onChange={(e) => handleChange('description', e.target.value)}
+          placeholder="Describe the flat features, study habits, room amenities, Wi-Fi speed, nearby mess/cafe, etc."
+          className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-4 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold leading-relaxed"
+        />
+      </div>
+
+      {/* Action Button */}
+      <div className="pt-2 border-t border-slate-100 flex items-center justify-end">
         <button
           type="submit"
           disabled={loading}
-          className="px-6 py-3 bg-brand-900 hover:bg-brand-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2"
+          className="w-full sm:w-auto px-8 py-3.5 bg-[#1A73E8] hover:bg-[#1557B0] text-white font-bold text-xs rounded-2xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
         >
-          <Save className="w-4 h-4" />
-          {loading ? 'Saving Listing...' : isEdit ? 'Update Listing' : 'Publish Listing'}
+          <span>{loading ? 'Publishing...' : isEdit ? 'Save Changes' : 'Publish Vacancy'}</span>
+          <ArrowRight className="w-4 h-4" />
         </button>
       </div>
     </form>

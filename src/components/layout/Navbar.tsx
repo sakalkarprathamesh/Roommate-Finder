@@ -19,14 +19,18 @@ import {
   Shield,
   Settings,
   CheckCircle2,
-  Clock,
   Sparkles,
+  Building,
+  Heart,
+  FileText,
+  Users,
 } from 'lucide-react';
 
 interface AuthUser {
   id: string;
   email: string;
   role: string;
+  roles?: string;
   isActive: boolean;
   profile?: {
     name: string;
@@ -75,7 +79,6 @@ export default function Navbar() {
         const data = await res.json();
         setUser(data.user);
 
-        // Fetch notifications if logged in
         if (data.user) {
           const nRes = await fetch('/api/notifications');
           if (nRes.ok) {
@@ -120,149 +123,171 @@ export default function Navbar() {
   };
 
   const markAllNotificationsAsRead = async () => {
-    await fetch('/api/notifications', { method: 'PUT' });
-    setUnreadCount(0);
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    try {
+      await fetch('/api/notifications', { method: 'PUT' });
+      setUnreadCount(0);
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch {
+      // handle error
+    }
   };
 
-  return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 shadow-2xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          {/* Brand Logo */}
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-10 h-10 rounded-xl bg-brand-900 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
-                <Building2 className="w-5 h-5" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 flex items-center gap-1.5">
-                  Roomie <span className="text-brand-800 font-bold text-[10px] sm:text-xs px-1.5 py-0.5 bg-brand-50 rounded-md border border-brand-200">MIT-ADT</span>
-                </span>
-                <span className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold -mt-0.5">
-                  Roommate Finder
-                </span>
-              </div>
-            </Link>
-          </div>
+  const isSeeker = !user?.role || user.role === 'SEEKER' || user.role === 'student';
+  const isPGOwner = user?.role === 'PG_OWNER';
+  const isFlatOwner = user?.role === 'FLAT_OWNER';
+  const isAdmin = user?.role === 'admin';
 
-          {/* Desktop Navigation Links */}
+  return (
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#DADCE0] dark:border-[#3C4043] shadow-2xs">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo with Vibrant Google Colors for Roomie */}
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-2xl bg-[#1A73E8] dark:bg-[#8AB4F8] text-white dark:text-[#202124] flex items-center justify-center font-black text-sm shadow-xs group-hover:scale-105 transition-transform">
+              R
+            </div>
+            <div className="flex flex-col">
+              <div className="font-black text-lg tracking-tight leading-none">
+                <span className="text-[#1A73E8] dark:text-[#8AB4F8]">R</span>
+                <span className="text-[#EA4335] dark:text-[#F28B82]">o</span>
+                <span className="text-[#FBBC04] dark:text-[#FDD663]">o</span>
+                <span className="text-[#1A73E8] dark:text-[#8AB4F8]">m</span>
+                <span className="text-[#34A853] dark:text-[#81C995]">i</span>
+                <span className="text-[#EA4335] dark:text-[#F28B82]">e</span>
+              </div>
+              <span className="text-[10px] font-bold text-[#5F6368] dark:text-[#BDC1C6] tracking-wider uppercase mt-0.5">
+                MIT-ADT Pune
+              </span>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation Links (HIGH CONTRAST IN DARK MODE) */}
           <nav className="hidden md:flex items-center gap-1 lg:gap-2">
             <Link
               href="/"
-              className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+              className={`px-3.5 py-2 rounded-2xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
                 pathname === '/'
-                  ? 'bg-brand-50 text-brand-900'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  ? 'bg-[#E8F0FE] text-[#1A73E8] dark:bg-[#1E3A5F] dark:text-[#8AB4F8]'
+                  : 'text-[#5F6368] hover:text-[#202124] dark:text-[#E8EAED] dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#3C4043]'
               }`}
             >
-              <Home className="w-4 h-4" />
-              Home
-            </Link>
-            <Link
-              href="/find"
-              className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
-                pathname === '/find'
-                  ? 'bg-brand-50 text-brand-900'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
-            >
-              <Search className="w-4 h-4" />
-              Find
-            </Link>
-            <Link
-              href="/listings/new"
-              className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
-                pathname === '/listings/new'
-                  ? 'bg-brand-50 text-brand-900'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
-            >
-              <PlusCircle className="w-4 h-4 text-brand-700" />
-              Post Listing
+              <Home className="w-4 h-4 text-slate-400 dark:text-[#BDC1C6]" />
+              <span>Home</span>
             </Link>
 
-            {user?.role === 'student' && (
+            <Link
+              href="/find"
+              className={`px-3.5 py-2 rounded-2xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                pathname === '/find'
+                  ? 'bg-[#E8F0FE] text-[#1A73E8] dark:bg-[#1E3A5F] dark:text-[#8AB4F8]'
+                  : 'text-[#5F6368] hover:text-[#202124] dark:text-[#E8EAED] dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#3C4043]'
+              }`}
+            >
+              <Search className="w-4 h-4 text-slate-400 dark:text-[#BDC1C6]" />
+              <span>Find Accommodations</span>
+            </Link>
+
+            {user && (
               <>
                 <Link
-                  href="/inbox"
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
-                    pathname === '/inbox'
-                      ? 'bg-brand-50 text-brand-900'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Inbox className="w-4 h-4" />
-                  Inbox
-                </Link>
-                <Link
                   href="/dashboard"
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                  className={`px-3.5 py-2 rounded-2xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
                     pathname === '/dashboard'
-                      ? 'bg-brand-50 text-brand-900'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-[#E8F0FE] text-[#1A73E8] dark:bg-[#1E3A5F] dark:text-[#8AB4F8]'
+                      : 'text-[#5F6368] hover:text-[#202124] dark:text-[#E8EAED] dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#3C4043]'
                   }`}
                 >
-                  <LayoutDashboard className="w-4 h-4" />
-                  Dashboard
+                  <LayoutDashboard className="w-4 h-4 text-slate-400 dark:text-[#BDC1C6]" />
+                  <span>Dashboard</span>
+                </Link>
+
+                <Link
+                  href="/inbox"
+                  className={`px-3.5 py-2 rounded-2xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                    pathname === '/inbox'
+                      ? 'bg-[#E8F0FE] text-[#1A73E8] dark:bg-[#1E3A5F] dark:text-[#8AB4F8]'
+                      : 'text-[#5F6368] hover:text-[#202124] dark:text-[#E8EAED] dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#3C4043]'
+                  }`}
+                >
+                  <Inbox className="w-4 h-4 text-slate-400 dark:text-[#BDC1C6]" />
+                  <span>Inbox</span>
                 </Link>
               </>
             )}
 
-            {user?.role === 'admin' && (
+            {isAdmin && (
               <Link
                 href="/admin"
-                className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                className={`px-3.5 py-2 rounded-2xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
                   pathname === '/admin'
-                    ? 'bg-brand-50 text-brand-900'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-[#E8F0FE] text-[#1A73E8] dark:bg-[#1E3A5F] dark:text-[#8AB4F8]'
+                    : 'text-[#5F6368] hover:text-[#202124] dark:text-[#E8EAED] dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#3C4043]'
                 }`}
               >
-                <Shield className="w-4 h-4 text-brand-700" />
-                Admin Dashboard
+                <Shield className="w-4 h-4 text-[#1A73E8] dark:text-[#8AB4F8]" />
+                <span>Admin Portal</span>
               </Link>
             )}
           </nav>
 
           {/* Right Controls */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Notifications Dropdown */}
+            {/* Logged Out View */}
+            {!loading && !user && (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-xs font-bold text-[#202124] dark:text-[#E8EAED] hover:bg-slate-100 dark:hover:bg-[#3C4043] rounded-2xl transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-4 py-2 bg-[#1A73E8] hover:bg-[#1557B0] text-white font-bold text-xs rounded-2xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Register</span>
+                </Link>
+              </div>
+            )}
+
+            {/* Logged In: Notifications Dropdown */}
             {user && (
               <div className="relative" ref={notifRef}>
                 <button
                   type="button"
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                  className="relative p-2 rounded-2xl text-[#5F6368] dark:text-[#E8EAED] hover:text-[#202124] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#3C4043] transition-colors cursor-pointer"
                   aria-label="Notifications"
                 >
                   <Bell className="w-5 h-5" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-brand-700 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
+                    <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-[#1A73E8] text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white dark:ring-[#202124]">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
                 </button>
 
                 {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 py-3 z-50 animate-in fade-in zoom-in-95">
-                    <div className="px-4 pb-2 border-b border-slate-100 flex items-center justify-between">
-                      <div className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                        <Bell className="w-4 h-4 text-brand-700" />
-                        Notifications
+                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-[#303134] rounded-3xl shadow-2xl border border-[#DADCE0] dark:border-[#3C4043] py-3 z-50 animate-in fade-in zoom-in-95">
+                    <div className="px-4 pb-2 border-b border-slate-100 dark:border-[#3C4043] flex items-center justify-between">
+                      <div className="font-bold text-[#202124] dark:text-[#FFFFFF] text-xs uppercase tracking-wider flex items-center gap-1.5">
+                        <Bell className="w-4 h-4 text-[#1A73E8] dark:text-[#8AB4F8]" />
+                        <span>Notifications</span>
                       </div>
                       {unreadCount > 0 && (
                         <button
                           onClick={markAllNotificationsAsRead}
-                          className="text-xs font-semibold text-brand-700 hover:underline"
+                          className="text-xs font-semibold text-[#1A73E8] dark:text-[#8AB4F8] hover:underline cursor-pointer"
                         >
                           Mark all read
                         </button>
                       )}
                     </div>
 
-                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-[#3C4043]">
                       {notifications.length === 0 ? (
-                        <div className="py-8 text-center text-slate-400 text-xs">
+                        <div className="py-8 text-center text-[#5F6368] dark:text-[#BDC1C6] text-xs">
                           No notifications yet
                         </div>
                       ) : (
@@ -271,13 +296,13 @@ export default function Navbar() {
                             key={n.id}
                             href={n.link || '/inbox'}
                             onClick={() => setShowNotifications(false)}
-                            className={`block p-3.5 hover:bg-slate-50 transition-colors ${
-                              !n.isRead ? 'bg-blue-50/60' : ''
+                            className={`block p-3.5 hover:bg-slate-50 dark:hover:bg-[#3C4043] transition-colors ${
+                              !n.isRead ? 'bg-blue-50/60 dark:bg-[#1E3A5F]/40' : ''
                             }`}
                           >
-                            <p className="font-bold text-slate-900 text-xs">{n.title}</p>
-                            <p className="text-[11px] text-slate-600 line-clamp-2 mt-0.5">{n.message}</p>
-                            <span className="text-[10px] text-slate-400 mt-1 block">
+                            <p className="font-bold text-[#202124] dark:text-[#FFFFFF] text-xs">{n.title}</p>
+                            <p className="text-[11px] text-[#5F6368] dark:text-[#BDC1C6] line-clamp-2 mt-0.5">{n.message}</p>
+                            <span className="text-[10px] text-slate-400 dark:text-[#9AA0A6] mt-1 block">
                               {new Date(n.createdAt).toLocaleDateString()}
                             </span>
                           </Link>
@@ -290,208 +315,303 @@ export default function Navbar() {
             )}
 
             {/* Profile Avatar / User Dropdown */}
-            {user ? (
+            {user && (
               <div className="relative" ref={userMenuRef}>
                 <button
                   type="button"
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 p-1.5 rounded-2xl hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200"
+                  className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-[#3C4043] transition-all hover:ring-2 hover:ring-[#DADCE0] dark:hover:ring-[#5F6368] cursor-pointer flex items-center justify-center"
+                  aria-label="User profile menu"
+                  title={user.profile?.name || 'Account'}
                 >
-                  <div className="w-8 h-8 rounded-full bg-brand-900 text-white flex items-center justify-center text-xs font-bold shadow-2xs overflow-hidden">
+                  <div className="w-9 h-9 rounded-full bg-[#1A73E8] text-white flex items-center justify-center text-xs font-bold shadow-2xs overflow-hidden border-2 border-white dark:border-[#303134]">
                     {user.profile?.profilePhotoUrl ? (
                       <img
                         src={user.profile.profilePhotoUrl}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
+                        alt="Profile Avatar"
+                        className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
                       user.profile?.name?.charAt(0) || user.email.charAt(0).toUpperCase()
                     )}
                   </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-500 hidden sm:block" />
                 </button>
 
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95">
-                    <div className="px-4 py-3 border-b border-slate-100">
-                      <p className="text-sm font-bold text-slate-900 truncate">
-                        {user.profile?.name || 'MIT-ADT Student'}
-                      </p>
-                      <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                  <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-[#303134] rounded-3xl shadow-2xl border border-[#DADCE0] dark:border-[#3C4043] py-2 z-50 animate-in fade-in zoom-in-95">
+                    {/* Header with Avatar on left side of name */}
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-[#3C4043] flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-full bg-[#1A73E8] text-white flex items-center justify-center text-sm font-bold shadow-xs overflow-hidden flex-shrink-0 border-2 border-white dark:border-[#202124]">
+                        {user.profile?.profilePhotoUrl ? (
+                          <img
+                            src={user.profile.profilePhotoUrl}
+                            alt="Profile Avatar"
+                            className="w-full h-full object-cover rounded-full"
+                          />
+                        ) : (
+                          user.profile?.name?.charAt(0) || user.email.charAt(0).toUpperCase()
+                        )}
+                      </div>
 
-                      <div className="flex items-center gap-1.5 mt-2">
-                        <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold rounded-md flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          Email Verified
-                        </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-[#202124] dark:text-[#FFFFFF] truncate">
+                          {user.profile?.name || 'Roomie User'}
+                        </p>
+                        <p className="text-xs text-[#5F6368] dark:text-[#BDC1C6] truncate">{user.email}</p>
+
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <span className="px-2 py-0.5 bg-[#E8F0FE] dark:bg-[#1E3A5F] border border-[#DADCE0] dark:border-[#2B4C7E] text-[#1A73E8] dark:text-[#8AB4F8] text-[10px] font-bold rounded-full flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-[#1A73E8] dark:text-[#8AB4F8]" />
+                            {isPGOwner ? '🏢 PG Owner' : isFlatOwner ? '🏡 Flat Owner' : isAdmin ? '🛡️ Admin' : '🏠 Seeker'}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
+                    {/* ROLE-SPECIFIC MENU: HIGH CONTRAST IN DARK MODE */}
                     <div className="py-1">
                       <Link
                         href="/profile"
                         onClick={() => setShowUserMenu(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
                       >
-                        <User className="w-4 h-4 text-slate-400" />
-                        My Profile
-                      </Link>
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setShowUserMenu(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                      >
-                        <LayoutDashboard className="w-4 h-4 text-slate-400" />
-                        Dashboard & Listings
-                      </Link>
-                      <Link
-                        href="/settings"
-                        onClick={() => setShowUserMenu(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                      >
-                        <Settings className="w-4 h-4 text-slate-400" />
-                        Settings
+                        <User className="w-4 h-4 text-slate-400 dark:text-[#BDC1C6]" />
+                        <span>My Profile</span>
                       </Link>
 
-                      {user.role === 'admin' && (
+                      {/* Seeker Specific */}
+                      {isSeeker && !isAdmin && (
+                        <>
+                          <Link
+                            href="/saved"
+                            onClick={() => setShowUserMenu(false)}
+                            className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+                          >
+                            <Heart className="w-4 h-4 text-slate-400 dark:text-[#BDC1C6]" />
+                            <span>Saved Listings</span>
+                          </Link>
+
+                          <Link
+                            href="/inbox"
+                            onClick={() => setShowUserMenu(false)}
+                            className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+                          >
+                            <FileText className="w-4 h-4 text-slate-400 dark:text-[#BDC1C6]" />
+                            <span>My Requests / Applications</span>
+                          </Link>
+                        </>
+                      )}
+
+                      {/* PG Owner Specific */}
+                      {isPGOwner && (
+                        <>
+                          <Link
+                            href="/manage/pg"
+                            onClick={() => setShowUserMenu(false)}
+                            className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+                          >
+                            <Building className="w-4 h-4 text-slate-400 dark:text-[#BDC1C6]" />
+                            <span>Manage Your PG</span>
+                          </Link>
+
+                          <Link
+                            href="/inbox"
+                            onClick={() => setShowUserMenu(false)}
+                            className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+                          >
+                            <Users className="w-4 h-4 text-slate-400 dark:text-[#BDC1C6]" />
+                            <span>Interested Students / Requests</span>
+                          </Link>
+                        </>
+                      )}
+
+                      {/* Flat Owner Specific */}
+                      {isFlatOwner && (
+                        <>
+                          <Link
+                            href="/manage/flat"
+                            onClick={() => setShowUserMenu(false)}
+                            className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+                          >
+                            <Home className="w-4 h-4 text-slate-400 dark:text-[#BDC1C6]" />
+                            <span>Manage Your Flat</span>
+                          </Link>
+
+                          <Link
+                            href="/inbox"
+                            onClick={() => setShowUserMenu(false)}
+                            className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+                          >
+                            <Users className="w-4 h-4 text-slate-400 dark:text-[#BDC1C6]" />
+                            <span>Interested Students / Requests</span>
+                          </Link>
+                        </>
+                      )}
+
+                      {/* Admin Specific */}
+                      {isAdmin && (
                         <Link
                           href="/admin"
                           onClick={() => setShowUserMenu(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#1A73E8] dark:text-[#8AB4F8] hover:bg-blue-50 dark:hover:bg-[#3C4043]"
                         >
-                          <Shield className="w-4 h-4 text-brand-700" />
-                          Admin Dashboard
+                          <Shield className="w-4 h-4 text-[#1A73E8] dark:text-[#8AB4F8]" />
+                          <span>Admin Portal</span>
                         </Link>
                       )}
 
+                      {/* Common: Notifications & Settings */}
+                      <Link
+                        href="/notifications"
+                        onClick={() => setShowUserMenu(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+                      >
+                        <Bell className="w-4 h-4 text-slate-400 dark:text-[#BDC1C6]" />
+                        <span>Notifications</span>
+                      </Link>
+
+                      <Link
+                        href="/settings"
+                        onClick={() => setShowUserMenu(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+                      >
+                        <Settings className="w-4 h-4 text-slate-400 dark:text-[#BDC1C6]" />
+                        <span>Settings</span>
+                      </Link>
+                    </div>
+
+                    <div className="pt-1 border-t border-slate-100 dark:border-[#3C4043]">
                       <button
+                        type="button"
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 text-left border-t border-slate-100 mt-1"
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-[#EA4335] dark:text-[#F28B82] hover:bg-rose-50 dark:hover:bg-[#3C4043] w-full text-left cursor-pointer"
                       >
                         <LogOut className="w-4 h-4" />
-                        Log out
+                        <span>Logout</span>
                       </button>
                     </div>
                   </div>
                 )}
               </div>
-            ) : (
-              !loading && (
-                <div className="flex items-center gap-2">
-                  <Link
-                    href="/login"
-                    className="px-3 py-2 text-xs font-bold text-slate-700 hover:text-brand-900 transition-colors"
-                  >
-                    Log In
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="px-3.5 py-2 text-xs font-bold text-white bg-brand-900 rounded-xl shadow-xs hover:bg-brand-800 transition-all"
-                  >
-                    Register
-                  </Link>
-                </div>
-              )
             )}
 
-            {/* Mobile Toggle */}
+            {/* Mobile Drawer Button */}
             <button
               type="button"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 md:hidden"
+              className="p-2 rounded-2xl text-[#5F6368] dark:text-[#E8EAED] hover:text-[#202124] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#3C4043] md:hidden cursor-pointer"
+              aria-label="Toggle menu"
             >
               {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {showMobileMenu && (
-          <div className="md:hidden border-t border-slate-100 py-3 space-y-1">
-            <Link
-              href="/"
-              onClick={() => setShowMobileMenu(false)}
-              className="block px-3 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50"
-            >
-              Home
-            </Link>
-            <Link
-              href="/find"
-              onClick={() => setShowMobileMenu(false)}
-              className="block px-3 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50"
-            >
-              Find Listings
-            </Link>
-            <Link
-              href="/listings/new"
-              onClick={() => setShowMobileMenu(false)}
-              className="block px-3 py-2 rounded-lg text-sm font-bold text-brand-700 hover:bg-slate-50"
-            >
-              + Post a Listing
-            </Link>
-
-            {user ? (
-              <>
-                <Link
-                  href="/inbox"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block px-3 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50"
-                >
-                  Inbox & Requests
-                </Link>
-                <Link
-                  href="/dashboard"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block px-3 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/profile"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block px-3 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50"
-                >
-                  My Profile
-                </Link>
-                <Link
-                  href="/settings"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block px-3 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50"
-                >
-                  Settings
-                </Link>
-
-                {user.role === 'admin' && (
-                  <Link
-                    href="/admin"
-                    onClick={() => setShowMobileMenu(false)}
-                    className="block px-3 py-2 rounded-lg text-sm font-bold text-brand-700 hover:bg-slate-50"
-                  >
-                    Admin Dashboard
-                  </Link>
-                )}
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block px-3 py-2 rounded-lg text-sm font-bold text-slate-800"
-                >
-                  Log In
-                </Link>
-                <Link
-                  href="/register"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block px-3 py-2 rounded-lg text-sm font-bold text-brand-700"
-                >
-                  Register
-                </Link>
-              </>
-            )}
-          </div>
-        )}
       </div>
+
+      {/* Mobile Drawer */}
+      {showMobileMenu && (
+        <div className="md:hidden border-t border-[#DADCE0] dark:border-[#3C4043] bg-white dark:bg-[#202124] px-4 pt-3 pb-6 space-y-2.5 animate-in slide-in-from-top-2">
+          {user && (
+            <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-[#303134] rounded-2xl border border-[#DADCE0] dark:border-[#3C4043] mb-2">
+              <div className="w-10 h-10 rounded-full bg-[#1A73E8] text-white flex items-center justify-center text-xs font-bold shadow-xs overflow-hidden flex-shrink-0 border border-white dark:border-[#202124]">
+                {user.profile?.profilePhotoUrl ? (
+                  <img
+                    src={user.profile.profilePhotoUrl}
+                    alt="Profile Avatar"
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  user.profile?.name?.charAt(0) || user.email.charAt(0).toUpperCase()
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-black text-[#202124] dark:text-[#FFFFFF] truncate">
+                  {user.profile?.name || 'Roomie User'}
+                </p>
+                <p className="text-[10px] text-[#5F6368] dark:text-[#BDC1C6] truncate">{user.email}</p>
+              </div>
+            </div>
+          )}
+
+          <Link
+            href="/"
+            onClick={() => setShowMobileMenu(false)}
+            className="flex items-center gap-2 p-2.5 rounded-2xl font-bold text-xs text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+          >
+            <Home className="w-4 h-4" /> <span>Home</span>
+          </Link>
+          <Link
+            href="/find"
+            onClick={() => setShowMobileMenu(false)}
+            className="flex items-center gap-2 p-2.5 rounded-2xl font-bold text-xs text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+          >
+            <Search className="w-4 h-4" /> <span>Find Accommodations</span>
+          </Link>
+
+          {user ? (
+            <>
+              <Link
+                href="/dashboard"
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center gap-2 p-2.5 rounded-2xl font-bold text-xs text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+              >
+                <LayoutDashboard className="w-4 h-4" /> <span>Dashboard</span>
+              </Link>
+              {isPGOwner && (
+                <Link
+                  href="/manage/pg"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="flex items-center gap-2 p-2.5 rounded-2xl font-bold text-xs text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+                >
+                  <Building className="w-4 h-4" /> <span>Manage PG</span>
+                </Link>
+              )}
+              {isFlatOwner && (
+                <Link
+                  href="/manage/flat"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="flex items-center gap-2 p-2.5 rounded-2xl font-bold text-xs text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+                >
+                  <Home className="w-4 h-4" /> <span>Manage Flat</span>
+                </Link>
+              )}
+              <Link
+                href="/profile"
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center gap-2 p-2.5 rounded-2xl font-bold text-xs text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+              >
+                <User className="w-4 h-4" /> <span>My Profile</span>
+              </Link>
+              <button
+                onClick={() => {
+                  setShowMobileMenu(false);
+                  handleLogout();
+                }}
+                className="flex items-center gap-2 p-2.5 rounded-2xl font-bold text-xs text-[#EA4335] dark:text-[#F28B82] hover:bg-rose-50 dark:hover:bg-[#3C4043] w-full text-left cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" /> <span>Logout</span>
+              </button>
+            </>
+          ) : (
+            <div className="pt-2 flex flex-col gap-2">
+              <Link
+                href="/login"
+                onClick={() => setShowMobileMenu(false)}
+                className="w-full py-2.5 text-center font-bold text-xs text-[#202124] dark:text-[#FFFFFF] bg-slate-100 dark:bg-[#3C4043] rounded-2xl"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                onClick={() => setShowMobileMenu(false)}
+                className="w-full py-2.5 text-center font-bold text-xs text-white bg-[#1A73E8] rounded-2xl"
+              >
+                Register
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
     </header>
   );
 }

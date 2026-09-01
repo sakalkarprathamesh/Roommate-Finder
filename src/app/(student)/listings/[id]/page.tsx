@@ -20,6 +20,10 @@ import {
   Edit,
   Trash2,
   X,
+  Sparkles,
+  ShieldCheck,
+  Home,
+  CheckCheck,
 } from 'lucide-react';
 import { LISTING_TYPES, REPORT_REASONS } from '@/lib/constants';
 import { usePageMeta } from '@/hooks/usePageMeta';
@@ -33,11 +37,11 @@ export default function ListingDetailPage() {
 
   usePageMeta({
     title: listing?.title
-      ? `${listing.title} | MIT-ADT Roommate Finder`
-      : 'Listing Details | MIT-ADT Roommate Finder',
+      ? `${listing.title} | Roomie`
+      : 'Listing Details | Roomie',
     description:
       listing?.description?.slice(0, 160) ||
-      'View student accommodation vacancy details on MIT-ADT Roommate Finder.',
+      'View student accommodation vacancy details on Roomie.',
     noindex: false,
   });
   const [loading, setLoading] = useState(true);
@@ -145,8 +149,8 @@ export default function ListingDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-slate-400 text-xs">
-        Loading listing details...
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-[#5F6368] text-xs font-semibold">
+        Loading accommodation details...
       </div>
     );
   }
@@ -154,9 +158,9 @@ export default function ListingDetailPage() {
   if (!listing) {
     return (
       <div className="max-w-md mx-auto px-4 py-16 text-center space-y-3">
-        <h2 className="text-xl font-bold text-slate-900">Listing Not Found</h2>
-        <p className="text-xs text-slate-500">This listing may have been filled or removed.</p>
-        <Link href="/find" className="inline-block px-4 py-2 bg-brand-900 text-white font-bold text-xs rounded-xl">
+        <h2 className="text-xl font-bold text-[#202124]">Listing Not Found</h2>
+        <p className="text-xs text-[#5F6368]">This listing may have been filled or removed.</p>
+        <Link href="/find" className="inline-block px-5 py-2.5 bg-[#1A73E8] text-white font-bold text-xs rounded-2xl shadow-xs">
           Back to Listings
         </Link>
       </div>
@@ -168,94 +172,174 @@ export default function ListingDetailPage() {
   const isAuthorized = listing.isAuthorizedContact;
   const contactStatus = listing.contactRequestStatus;
   const typeLabel = (LISTING_TYPES as Record<string, string>)[listing.listingType] || listing.listingType;
+  const photos = listing.photos ? JSON.parse(listing.photos) : [];
+  const amenities = listing.amenities ? JSON.parse(listing.amenities) : [];
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <Link
         href="/find"
-        className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-brand-900 transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5F6368] hover:text-[#1A73E8] transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Listings Search
+        <span>Back to Search</span>
       </Link>
 
-      {/* Main Listing Header Card */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+      {/* Photo Gallery (if photos uploaded) */}
+      {photos.length > 0 && (
+        <div className="bg-white rounded-3xl border border-[#DADCE0] overflow-hidden p-3 shadow-2xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="sm:col-span-2 aspect-video rounded-2xl overflow-hidden bg-slate-100">
+              <img src={photos[0]} alt={listing.title} className="w-full h-full object-cover" />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-1 gap-3">
+              {photos.slice(1, 3).map((imgUrl: string, idx: number) => (
+                <div key={idx} className="aspect-video rounded-2xl overflow-hidden bg-slate-100">
+                  <img src={imgUrl} alt={`${listing.title} photo ${idx + 2}`} className="w-full h-full object-cover" />
+                </div>
+              ))}
+              {photos.length === 1 && (
+                <div className="aspect-video rounded-2xl bg-[#F8F9FA] flex items-center justify-center text-4xl">
+                  {listing.accommodationType === 'PG' ? '🏢' : '🏡'}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Details Card */}
+      <div className="bg-white rounded-3xl border border-[#DADCE0] p-6 sm:p-8 shadow-sm space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2.5 py-1 rounded-lg bg-brand-50 border border-brand-200 text-brand-900 text-xs font-bold uppercase tracking-wider">
-                {typeLabel}
+              <span className="px-3 py-1 rounded-full bg-[#E8F0FE] border border-[#DADCE0] text-[#1A73E8] text-xs font-bold uppercase tracking-wider">
+                {listing.accommodationType === 'PG' ? '🏢 Verified PG' : listing.accommodationType === 'Flat' ? '🏡 Residential Flat' : typeLabel}
               </span>
+              {listing.pgType && (
+                <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-[#202124] text-xs font-bold">
+                  {listing.pgType} PG
+                </span>
+              )}
+              {listing.bedrooms && (
+                <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-[#202124] text-xs font-bold">
+                  {listing.bedrooms} BHK
+                </span>
+              )}
               {listing.status === 'FILLED' && (
-                <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold">
+                <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-[#202124] text-xs font-bold">
                   Filled
                 </span>
               )}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#202124] leading-tight">
               {listing.title}
             </h1>
-            <p className="text-xs text-slate-500 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-red-500 inline" />
-              <span>{listing.location}</span>
+            <p className="text-xs text-[#5F6368] flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-[#EA4335] inline" />
+              <span>{listing.address || listing.location}</span>
               <span>•</span>
               <span>Listed {new Date(listing.createdAt).toLocaleDateString()}</span>
             </p>
           </div>
 
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-right flex-shrink-0">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900">
+          <div className="bg-[#F8F9FA] p-4 sm:p-5 rounded-3xl border border-[#DADCE0] text-right flex-shrink-0">
+            <span className="text-2xl sm:text-3xl font-black text-[#1A73E8]">
               ₹{listing.rent.toLocaleString('en-IN')}
             </span>
-            <span className="text-xs text-slate-400 block font-medium">/ month</span>
+            <span className="text-xs text-[#5F6368] block font-medium">/ month</span>
             {listing.deposit > 0 && (
-              <span className="text-[11px] text-slate-500 font-semibold block mt-1">
+              <span className="text-[11px] text-[#5F6368] font-semibold block mt-1">
                 Deposit: ₹{listing.deposit.toLocaleString('en-IN')}
               </span>
             )}
           </div>
         </div>
 
-        {/* Accommodation Specs Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs text-slate-700">
-          <div>
-            <span className="text-[11px] text-slate-400 font-medium block">Accommodation</span>
-            <span className="font-bold text-slate-900">{listing.accommodationType}</span>
+        {/* Occupancy Pricing Grid for PG */}
+        {(listing.singleRent || listing.doubleRent || listing.tripleRent) && (
+          <div className="space-y-2 pt-2 border-t border-slate-100">
+            <h3 className="text-xs font-bold text-[#202124] uppercase tracking-wider">
+              Occupancy & Pricing Options
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div className="p-3.5 bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl">
+                <span className="text-slate-400 text-[11px] block">Single Occupancy</span>
+                <span className="text-base font-black text-[#202124]">
+                  {listing.singleRent ? `₹${listing.singleRent.toLocaleString('en-IN')}/mo` : 'N/A'}
+                </span>
+              </div>
+              <div className="p-3.5 bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl">
+                <span className="text-slate-400 text-[11px] block">Double Sharing</span>
+                <span className="text-base font-black text-[#202124]">
+                  {listing.doubleRent ? `₹${listing.doubleRent.toLocaleString('en-IN')}/mo` : 'N/A'}
+                </span>
+              </div>
+              <div className="p-3.5 bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl">
+                <span className="text-slate-400 text-[11px] block">Triple Sharing</span>
+                <span className="text-base font-black text-[#202124]">
+                  {listing.tripleRent ? `₹${listing.tripleRent.toLocaleString('en-IN')}/mo` : 'N/A'}
+                </span>
+              </div>
+            </div>
           </div>
-          <div>
-            <span className="text-[11px] text-slate-400 font-medium block">Room Type</span>
-            <span className="font-bold text-slate-900">{listing.roomType} Room</span>
+        )}
+
+        {/* Flat Specifications */}
+        {(listing.bedrooms || listing.bathrooms || listing.furnishing) && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#F8F9FA] p-4 rounded-2xl border border-[#DADCE0] text-xs text-[#202124]">
+            <div>
+              <span className="text-[11px] text-[#5F6368] font-medium block">Configuration</span>
+              <span className="font-bold text-[#202124]">{listing.bedrooms} BHK</span>
+            </div>
+            <div>
+              <span className="text-[11px] text-[#5F6368] font-medium block">Bathrooms</span>
+              <span className="font-bold text-[#202124]">{listing.bathrooms} Bath</span>
+            </div>
+            <div>
+              <span className="text-[11px] text-[#5F6368] font-medium block">Furnishing</span>
+              <span className="font-bold text-[#202124]">{listing.furnishing || 'Standard'}</span>
+            </div>
+            <div>
+              <span className="text-[11px] text-[#5F6368] font-medium block">Preferred Tenants</span>
+              <span className="font-bold text-[#202124]">{listing.preferredTenant || 'Students'}</span>
+            </div>
           </div>
-          <div>
-            <span className="text-[11px] text-slate-400 font-medium block">Occupants / Vacancies</span>
-            <span className="font-bold text-slate-900">
-              {listing.currentOccupants} occupants • {listing.vacancies} vacancy
-            </span>
+        )}
+
+        {/* Amenities */}
+        {amenities.length > 0 && (
+          <div className="space-y-2 pt-2 border-t border-slate-100">
+            <h3 className="text-xs font-bold text-[#202124] uppercase tracking-wider">
+              Amenities & Facilities
+            </h3>
+            <div className="flex flex-wrap items-center gap-2">
+              {amenities.map((item: string) => (
+                <span key={item} className="px-3 py-1 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl text-xs font-semibold text-[#202124] capitalize">
+                  ✓ {item.replace('_', ' ')}
+                </span>
+              ))}
+            </div>
           </div>
-          <div>
-            <span className="text-[11px] text-slate-400 font-medium block">Move-in Date</span>
-            <span className="font-bold text-slate-900">{listing.moveInDate}</span>
-          </div>
-        </div>
+        )}
 
         {/* Description */}
-        <div className="space-y-2 pt-2">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            Listing Description
+        <div className="space-y-2 pt-2 border-t border-slate-100">
+          <h3 className="text-xs font-bold text-[#202124] uppercase tracking-wider">
+            Overview & Description
           </h3>
-          <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+          <p className="text-xs sm:text-sm text-[#5F6368] leading-relaxed whitespace-pre-line">
             {listing.description}
           </p>
         </div>
 
         {/* Owner Public Profile Card */}
         <div className="pt-6 border-t border-slate-100 space-y-3">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            Posted By Student
+          <h3 className="text-xs font-bold text-[#202124] uppercase tracking-wider">
+            Host / Owner Profile
           </h3>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#F8F9FA] p-4 sm:p-5 rounded-2xl border border-[#DADCE0]">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-2xl bg-slate-200 flex items-center justify-center font-bold text-slate-700 text-base overflow-hidden flex-shrink-0">
                 {p?.profilePhotoUrl ? (
@@ -267,40 +351,39 @@ export default function ListingDetailPage() {
 
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-900 text-sm">{p?.name}</span>
-                  <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold rounded-md flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                    Email Verified
+                  <span className="font-bold text-[#202124] text-sm">{p?.name}</span>
+                  <span className="px-2 py-0.5 bg-[#E6F4EA] border border-[#CEEAD6] text-[#137333] text-[10px] font-bold rounded-md flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-[#34A853]" />
+                    Verified Host
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 mt-0.5">
-                  {p?.department} • {p?.year}
+                <p className="text-xs text-[#5F6368] mt-0.5">
+                  {p?.department ? `${p.department} • ` : ''}{p?.year ? `${p.year} • ` : ''}{p?.school || 'MIT-ADT University'}
                 </p>
-                <p className="text-[11px] text-slate-400">{p?.school}</p>
               </div>
             </div>
 
             {/* Revealed Private Contact when Accepted */}
             {isAuthorized && p?.phone && (
-              <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl space-y-1.5 text-xs text-emerald-900">
-                <div className="font-bold flex items-center gap-1 text-[11px] uppercase tracking-wider text-emerald-800">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <div className="bg-[#E6F4EA] border border-[#CEEAD6] p-3 rounded-2xl space-y-1.5 text-xs text-[#137333]">
+                <div className="font-bold flex items-center gap-1 text-[11px] uppercase tracking-wider text-[#137333]">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#34A853]" />
                   Verified Contact Details
                 </div>
                 <div className="space-y-1">
                   <a
                     href={`tel:${p.phone}`}
-                    className="flex items-center gap-2 font-bold text-slate-900 hover:text-brand-700 bg-white p-1 rounded-md"
+                    className="flex items-center gap-2 font-bold text-[#202124] hover:text-[#1A73E8] bg-white p-1.5 rounded-xl border border-[#CEEAD6]"
                   >
-                    <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                    <Phone className="w-3.5 h-3.5 text-[#34A853]" />
                     <span>{p.phone}</span>
                   </a>
                   {p.email && (
                     <a
                       href={`mailto:${p.email}`}
-                      className="flex items-center gap-2 font-bold text-slate-900 hover:text-brand-700 bg-white p-1 rounded-md"
+                      className="flex items-center gap-2 font-bold text-[#202124] hover:text-[#1A73E8] bg-white p-1.5 rounded-xl border border-[#CEEAD6]"
                     >
-                      <Mail className="w-3.5 h-3.5 text-blue-600" />
+                      <Mail className="w-3.5 h-3.5 text-[#1A73E8]" />
                       <span>{p.email}</span>
                     </a>
                   )}
@@ -312,7 +395,7 @@ export default function ListingDetailPage() {
 
         {/* Action Controls */}
         <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="text-xs text-slate-400">
+          <div className="text-xs text-[#5F6368]">
             🔒 Private contact info is shared only upon mutual approval.
           </div>
 
@@ -321,42 +404,42 @@ export default function ListingDetailPage() {
               <>
                 <Link
                   href={`/listings/${listing.id}/edit`}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold flex items-center gap-1.5"
+                  className="px-4 py-2.5 rounded-2xl border border-[#DADCE0] text-[#202124] hover:bg-slate-50 text-xs font-bold flex items-center gap-1.5"
                 >
                   <Edit className="w-4 h-4" />
-                  Edit Listing
+                  <span>Edit Listing</span>
                 </Link>
                 <button
                   onClick={handleDeleteListing}
-                  className="px-4 py-2.5 rounded-xl border border-red-200 text-red-700 hover:bg-red-50 text-xs font-bold flex items-center gap-1.5"
+                  className="px-4 py-2.5 rounded-2xl border border-[#FAD2CF] text-[#C5221F] hover:bg-rose-50 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
-                  Delete
+                  <span>Delete</span>
                 </button>
               </>
             ) : isAuthorized ? (
-              <span className="px-4 py-2.5 bg-emerald-100 text-emerald-900 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-emerald-700" />
-                Connected! Contact Unlocked Above
+              <span className="px-4 py-2.5 bg-[#E6F4EA] text-[#137333] rounded-2xl text-xs font-bold flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-[#34A853]" />
+                <span>Connected! Contact Unlocked Above</span>
               </span>
             ) : contactStatus === 'PENDING' ? (
-              <span className="px-4 py-2.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-bold flex items-center gap-1.5">
+              <span className="px-4 py-2.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-xs font-bold flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-amber-600" />
-                Contact Request Pending
+                <span>Contact Request Pending</span>
               </span>
             ) : (
               <button
                 onClick={() => setShowRequestModal(true)}
-                className="px-6 py-3 bg-brand-900 hover:bg-brand-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2"
+                className="px-6 py-3 bg-[#1A73E8] hover:bg-[#1557B0] text-white font-bold text-xs rounded-2xl shadow-xs transition-all flex items-center gap-2 cursor-pointer"
               >
                 <Send className="w-4 h-4" />
-                Request Contact
+                <span>Request Contact</span>
               </button>
             )}
 
             <button
               onClick={() => setShowReportModal(true)}
-              className="p-2.5 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              className="p-2.5 rounded-2xl text-slate-400 hover:text-[#EA4335] hover:bg-rose-50 transition-colors cursor-pointer"
               title="Report Listing"
             >
               <AlertTriangle className="w-4 h-4" />
@@ -368,37 +451,37 @@ export default function ListingDetailPage() {
       {/* Request Contact Modal */}
       {showRequestModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-3xl shadow-2xl border border-[#DADCE0] w-full max-w-md p-6 sm:p-8 space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+              <h3 className="font-bold text-[#202124] text-base">
                 Request Contact Details
               </h3>
-              <button onClick={() => setShowRequestModal(false)} className="p-1 text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowRequestModal(false)} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {requestSuccess ? (
               <div className="text-center py-6 space-y-2">
-                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-                <p className="text-xs font-bold text-slate-800">{requestSuccess}</p>
+                <CheckCircle2 className="w-10 h-10 text-[#34A853] mx-auto" />
+                <p className="text-xs font-bold text-[#202124]">{requestSuccess}</p>
               </div>
             ) : (
               <form onSubmit={handleSendContactRequest} className="space-y-4">
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Send a contact request to <strong className="text-slate-900">{p?.name}</strong>. Your academic profile will be shared, and once approved, verified phone and email details will be unlocked.
+                <p className="text-xs text-[#5F6368] leading-relaxed">
+                  Send a contact request to <strong className="text-[#202124]">{p?.name}</strong>. Your verified student profile will be shared, and once approved, phone and email will be unlocked.
                 </p>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-[#202124]">
                     Introduction Message (Optional)
                   </label>
                   <textarea
                     rows={3}
                     value={requestMessage}
                     onChange={(e) => setRequestMessage(e.target.value)}
-                    placeholder="Hi! I am a 2nd year student interested in your flat vacancy. Can we schedule a visit?"
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:outline-none"
+                    placeholder="Hi! I am a student interested in your accommodation vacancy. Can we connect?"
+                    className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8]"
                   />
                 </div>
 
@@ -406,17 +489,17 @@ export default function ListingDetailPage() {
                   <button
                     type="button"
                     onClick={() => setShowRequestModal(false)}
-                    className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+                    className="px-4 py-2 text-xs font-bold text-[#5F6368] hover:bg-slate-100 rounded-2xl cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={requestSending}
-                    className="px-5 py-2.5 bg-brand-900 hover:bg-brand-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                    className="px-5 py-2.5 bg-[#1A73E8] hover:bg-[#1557B0] text-white font-bold text-xs rounded-2xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     <Send className="w-3.5 h-3.5" />
-                    {requestSending ? 'Sending...' : 'Send Request'}
+                    <span>{requestSending ? 'Sending...' : 'Send Request'}</span>
                   </button>
                 </div>
               </form>
@@ -428,32 +511,32 @@ export default function ListingDetailPage() {
       {/* Report Modal */}
       {showReportModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-3xl shadow-2xl border border-[#DADCE0] w-full max-w-md p-6 sm:p-8 space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2 text-red-600 font-bold text-sm">
+              <div className="flex items-center gap-2 text-[#EA4335] font-bold text-sm">
                 <AlertTriangle className="w-4 h-4" />
-                Report Listing
+                <span>Report Listing</span>
               </div>
-              <button onClick={() => setShowReportModal(false)} className="p-1 text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowReportModal(false)} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {reportSuccess ? (
               <div className="text-center py-6 space-y-2">
-                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-                <p className="text-xs font-bold text-slate-800">{reportSuccess}</p>
+                <CheckCircle2 className="w-10 h-10 text-[#34A853] mx-auto" />
+                <p className="text-xs font-bold text-[#202124]">{reportSuccess}</p>
               </div>
             ) : (
               <form onSubmit={handleSendReport} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-[#202124]">
                     Reason *
                   </label>
                   <select
                     value={reportReason}
                     onChange={(e) => setReportReason(e.target.value)}
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5"
+                    className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-2.5 text-[#202124] focus:outline-none"
                   >
                     {REPORT_REASONS.map((r) => (
                       <option key={r} value={r}>
@@ -463,16 +546,16 @@ export default function ListingDetailPage() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-[#202124]">
                     Details (Optional)
                   </label>
                   <textarea
                     rows={3}
                     value={reportDescription}
                     onChange={(e) => setReportDescription(e.target.value)}
-                    placeholder="Provide details for MIT-ADT student housing moderators..."
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5"
+                    placeholder="Provide details for moderators..."
+                    className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-2.5 text-[#202124] focus:outline-none"
                   />
                 </div>
 
@@ -480,14 +563,14 @@ export default function ListingDetailPage() {
                   <button
                     type="button"
                     onClick={() => setShowReportModal(false)}
-                    className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+                    className="px-4 py-2 text-xs font-bold text-[#5F6368] hover:bg-slate-100 rounded-2xl cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={reportSending}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl"
+                    className="px-4 py-2 bg-[#EA4335] hover:bg-rose-700 text-white font-bold text-xs rounded-2xl cursor-pointer"
                   >
                     {reportSending ? 'Submitting...' : 'Submit Report'}
                   </button>

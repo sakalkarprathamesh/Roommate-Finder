@@ -7,7 +7,7 @@ import {
   ArrowRight,
   HelpCircle,
 } from 'lucide-react';
-import { SUPPORT_EMAIL } from '@/lib/constants';
+import { SUPPORT_EMAIL, CREATOR_NAME } from '@/lib/constants';
 
 // Auto-expiry: Stops appearing to all users after 2 months (October 30, 2026)
 const EXPIRY_TIMESTAMP = new Date('2026-10-30T23:59:59Z').getTime();
@@ -17,19 +17,16 @@ export default function WelcomeModal() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // 1. Auto-expiry check (2 months limit)
     if (Date.now() > EXPIRY_TIMESTAMP) {
       return;
     }
 
-    // 2. Clear legacy permanent suppression keys if present
     try {
       localStorage.removeItem('roomie_welcome_note_seen_v1');
       localStorage.removeItem('roomie_founder_welcome_seen_v1');
       localStorage.removeItem('roomie_welcome_dismissed_v1');
     } catch {}
 
-    // 3. Strict reload check: If the page load was a reload/refresh, do not open
     try {
       if (typeof window !== 'undefined' && window.performance) {
         const navEntries = performance.getEntriesByType('navigation');
@@ -43,20 +40,16 @@ export default function WelcomeModal() {
         }
       }
 
-      // 4. Session check: If already seen in this active tab session, do not open on subpage nav / reload
       const seenInSession = sessionStorage.getItem(SESSION_KEY);
       if (seenInSession) {
         return;
       }
 
-      // Mark session as seen immediately so refreshing does not trigger it
       sessionStorage.setItem(SESSION_KEY, 'true');
 
-      // Smooth entrance
-      const timer = setTimeout(() => setIsOpen(true), 350);
+      const timer = setTimeout(() => setIsOpen(true), 400);
       return () => clearTimeout(timer);
     } catch {
-      // Fallback: show modal
       setIsOpen(true);
     }
   }, []);
@@ -82,18 +75,18 @@ export default function WelcomeModal() {
   return (
     <div
       onClick={handleClose}
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200"
       aria-modal="true"
       role="dialog"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-3xl border border-slate-200 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200 p-6 sm:p-8 space-y-5 relative"
+        className="bg-white rounded-3xl border border-[#DADCE0] w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200 p-6 sm:p-8 space-y-5 relative"
       >
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+          className="absolute top-5 right-5 p-2 rounded-2xl text-slate-400 hover:text-[#202124] hover:bg-slate-100 transition-colors cursor-pointer"
           aria-label="Close welcome popup"
         >
           <X className="w-5 h-5" />
@@ -101,36 +94,36 @@ export default function WelcomeModal() {
 
         {/* Header & Personal Note */}
         <div className="space-y-3 pr-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-900 text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-brand-700" />
-            Welcome to Roomie • MIT-ADT
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8F0FE] border border-[#DADCE0] text-[#1A73E8] text-xs font-bold uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-[#1A73E8]" />
+            <span>Welcome to Roomie</span>
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-[#202124] tracking-tight">
             Find Your Roommate & Flat
           </h2>
 
-          <div className="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-100 space-y-1.5 text-slate-700 text-xs sm:text-sm leading-relaxed">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-              A Small Note
+          <div className="bg-[#F8F9FA] rounded-2xl p-4 sm:p-5 border border-[#DADCE0] space-y-1.5 text-[#202124] text-xs sm:text-sm leading-relaxed">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#5F6368] block">
+              A Personal Note
             </span>
             <p>
-              &ldquo;Hii everyone! This is <strong className="text-slate-950 font-bold">Prathamesh Sakalkar</strong>, a 2nd year CSE student. I built Roomie to make it easier for MIT-ADT students to find roommates and accommodation near campus — no more relying on random WhatsApp group chats or word of mouth.&rdquo;
+              &ldquo;Hii everyone! This is <strong className="text-[#1A73E8] dark:text-[#8AB4F8] font-bold">{CREATOR_NAME}</strong>, a 2nd year CSE student. I built Roomie to make it easier for MIT-ADT students to find verified flats, PGs, and compatible roommates near campus.&rdquo;
             </p>
           </div>
         </div>
 
         {/* Live Launch & Feedback Note */}
-        <div className="bg-amber-50/80 rounded-2xl border border-amber-200/80 p-4 text-xs text-amber-900 space-y-1">
-          <div className="font-bold flex items-center gap-1.5 text-amber-950">
-            <HelpCircle className="w-4 h-4 text-amber-700 flex-shrink-0" />
-            <span>Early Live Release</span>
+        <div className="bg-[#FEF7E0] rounded-2xl border border-[#FEEFC3] p-4 text-xs text-[#7A4B04] space-y-1">
+          <div className="font-bold flex items-center gap-1.5 text-[#7A4B04]">
+            <HelpCircle className="w-4 h-4 text-[#FBBC04] flex-shrink-0" />
+            <span>Community Platform</span>
           </div>
-          <p className="text-[11px] text-amber-800 leading-relaxed">
-            The site has just gone live and is currently collecting real data, so you may encounter occasional rough edges. Your feedback and suggestions are warmly welcome anytime at{' '}
+          <p className="text-[11px] text-[#7A4B04] leading-relaxed">
+            Your feedback and suggestions are warmly welcome anytime at{' '}
             <a
               href={`mailto:${SUPPORT_EMAIL}`}
-              className="font-bold underline hover:text-amber-950"
+              className="font-bold underline hover:text-[#202124]"
             >
               {SUPPORT_EMAIL}
             </a>
@@ -142,7 +135,7 @@ export default function WelcomeModal() {
         <div className="pt-1 flex items-center justify-end">
           <button
             onClick={handleClose}
-            className="w-full sm:w-auto px-6 py-3 bg-brand-900 hover:bg-brand-800 text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-3 bg-[#1A73E8] hover:bg-[#1557B0] text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>Got it, let&apos;s explore!</span>
             <ArrowRight className="w-4 h-4" />

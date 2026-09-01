@@ -4,20 +4,20 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Building2,
   Lock,
   Mail,
   AlertCircle,
   Eye,
   EyeOff,
+  ArrowRight,
+  Sparkles,
 } from 'lucide-react';
 import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function LoginPage() {
   usePageMeta({
-    title: 'Login | MIT-ADT Roommate Finder',
-    description:
-      'Log in to your MIT-ADT Roommate Finder account to connect with flatmates and manage your listings.',
+    title: 'Login | Roomie',
+    description: 'Sign in to your Roomie account to connect with flatmates and manage your listings.',
     noindex: false,
   });
 
@@ -44,6 +44,10 @@ export default function LoginPage() {
       if (res.ok) {
         if (data.user?.role === 'admin') {
           router.push('/admin');
+        } else if (data.user?.role === 'PG_OWNER') {
+          router.push('/manage/pg');
+        } else if (data.user?.role === 'FLAT_OWNER') {
+          router.push('/manage/flat');
         } else {
           router.push('/dashboard');
         }
@@ -60,60 +64,60 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200 p-8 sm:p-10 shadow-sm space-y-6">
+      <div className="max-w-md w-full bg-white rounded-3xl border border-[#DADCE0] p-8 sm:p-10 shadow-sm space-y-6 animate-in fade-in zoom-in-95">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-brand-900 text-white flex items-center justify-center mx-auto">
-            <Building2 className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-2xl bg-[#1A73E8] text-white font-black flex items-center justify-center mx-auto text-lg shadow-2xs">
+            R
           </div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Student Login</h2>
-          <p className="text-xs text-slate-500">
-            Sign in to Roomie with your registered Gmail or MIT-ADT credentials
+          <h1 className="text-2xl font-black text-[#202124] tracking-tight">Welcome Back</h1>
+          <p className="text-xs text-[#5F6368]">
+            Sign in to Roomie with your email address
           </p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold p-3.5 rounded-xl flex items-center gap-2">
+          <div className="bg-[#FCE8E6] border border-[#FAD2CF] text-[#C5221F] text-xs font-semibold p-3.5 rounded-2xl flex items-center gap-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            {error}
+            <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-[#202124]">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="yourname@gmail.com"
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 pl-10 focus:bg-white focus:outline-none"
+                className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 pl-10 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] transition-all font-semibold"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-[#202124]">
               Password
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 pl-10 pr-10 focus:bg-white focus:outline-none"
+                placeholder="Enter your password"
+                className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 pl-10 pr-10 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] transition-all font-semibold"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -123,18 +127,21 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-brand-900 hover:bg-brand-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
+            className="w-full py-3.5 bg-[#1A73E8] hover:bg-[#1557B0] text-white font-bold text-xs rounded-2xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            {loading ? 'Authenticating...' : 'Sign In'}
+            <span>{loading ? 'Signing in...' : 'Sign In'}</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-        <p className="text-center text-xs text-slate-500 pt-2 border-t border-slate-100">
-          New to Roomie?{' '}
-          <Link href="/register" className="font-bold text-brand-900 hover:underline">
-            Register now
-          </Link>
-        </p>
+        <div className="pt-2 text-center text-xs text-[#5F6368] space-y-2 border-t border-[#DADCE0]">
+          <p>
+            Don&apos;t have an account?{' '}
+            <Link href="/register" className="font-bold text-[#1A73E8] hover:underline">
+              Create an account
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

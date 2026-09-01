@@ -19,9 +19,8 @@ import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function InboxPage() {
   usePageMeta({
-    title: 'Inbox & Requests | MIT-ADT Roommate Finder',
-    description:
-      'View student contact requests and private messages on MIT-ADT Roommate Finder.',
+    title: 'Inbox & Requests | Roomie',
+    description: 'View student contact requests and private messages on Roomie.',
     noindex: true,
   });
 
@@ -72,172 +71,140 @@ export default function InboxPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#202124] tracking-tight">
             Contact Requests & Connections
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-[#5F6368] mt-0.5">
             Review incoming requests for your listings, chat privately, and confirm space occupancy.
           </p>
         </div>
 
         <Link
           href="/find"
-          className="px-4 py-2.5 bg-brand-900 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 self-start sm:self-auto hover:bg-brand-800 transition-colors"
+          className="px-4 py-2.5 bg-[#1A73E8] hover:bg-[#1557B0] text-white font-bold text-xs rounded-2xl shadow-xs flex items-center gap-1.5 self-start sm:self-auto transition-all cursor-pointer"
         >
           <Compass className="w-4 h-4" />
-          Find Accommodations
+          <span>Find Accommodations</span>
         </Link>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-[#DADCE0] pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveTab('received')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 flex-shrink-0 ${
+          className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer ${
             activeTab === 'received'
-              ? 'bg-brand-900 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              ? 'bg-[#1A73E8] text-white shadow-xs'
+              : 'text-[#5F6368] hover:bg-slate-100'
           }`}
         >
           <InboxIcon className="w-4 h-4" />
-          Received Requests ({received.filter((r: any) => r.status === 'PENDING').length} Pending)
-        </button>
-
-        <button
-          onClick={() => setActiveTab('sent')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 flex-shrink-0 ${
-            activeTab === 'sent'
-              ? 'bg-brand-900 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <Send className="w-4 h-4" />
-          Sent Requests ({sent.length})
+          <span>Received Requests ({received.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('connected')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 flex-shrink-0 ${
+          className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer ${
             activeTab === 'connected'
-              ? 'bg-emerald-600 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              ? 'bg-[#1A73E8] text-white shadow-xs'
+              : 'text-[#5F6368] hover:bg-slate-100'
           }`}
         >
           <UserCheck className="w-4 h-4" />
-          Connected & Unlocked ({connected.length})
+          <span>Connected Students ({connected.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('sent')}
+          className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer ${
+            activeTab === 'sent'
+              ? 'bg-[#1A73E8] text-white shadow-xs'
+              : 'text-[#5F6368] hover:bg-slate-100'
+          }`}
+        >
+          <Send className="w-4 h-4" />
+          <span>Sent Requests ({sent.length})</span>
         </button>
       </div>
 
-      {/* Tab Content */}
+      {/* Content */}
       {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 text-xs">
+        <div className="bg-white rounded-3xl border border-[#DADCE0] p-12 text-center text-[#5F6368] text-xs font-semibold">
           Loading contact requests...
         </div>
-      ) : activeTab === 'received' ? (
-        received.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
-            <InboxIcon className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="text-base font-bold text-slate-900">No contact requests yet.</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              When students view your listings and click &quot;Request Contact&quot;, their requests will appear here for your review.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {received.map((r: any) => (
-              <ContactRequestCard
-                key={r.id}
-                id={r.id}
-                type="received"
-                listingId={r.listingId}
-                listingTitle={r.listingTitle}
-                listingLocation={r.listingLocation}
-                listingRent={r.listingRent}
-                listingStatus={r.listingStatus}
-                status={r.status}
-                message={r.message}
-                createdAt={r.createdAt}
-                currentUserId={currentUser?.id}
-                occupancyStatus={r.occupancyStatus}
-                occupancyInitiatorId={r.occupancyInitiatorId}
-                sender={r.sender}
-                onActionComplete={fetchInbox}
-              />
-            ))}
-          </div>
-        )
-      ) : activeTab === 'sent' ? (
-        sent.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
-            <Send className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="text-base font-bold text-slate-900">No sent requests.</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Browse listings on the Find page and send contact requests to connect with roommates!
-            </p>
-            <Link
-              href="/find"
-              className="inline-block px-4 py-2 bg-brand-900 text-white font-bold text-xs rounded-xl"
-            >
-              Explore Listings
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {sent.map((r: any) => (
-              <ContactRequestCard
-                key={r.id}
-                id={r.id}
-                type="sent"
-                listingId={r.listingId}
-                listingTitle={r.listingTitle}
-                listingLocation={r.listingLocation}
-                listingRent={r.listingRent}
-                listingStatus={r.listingStatus}
-                status={r.status}
-                message={r.message}
-                createdAt={r.createdAt}
-                currentUserId={currentUser?.id}
-                occupancyStatus={r.occupancyStatus}
-                occupancyInitiatorId={r.occupancyInitiatorId}
-                receiver={r.receiver}
-                onActionComplete={fetchInbox}
-              />
-            ))}
-          </div>
-        )
-      ) : connected.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
-          <UserCheck className="w-10 h-10 text-slate-300 mx-auto" />
-          <h3 className="text-base font-bold text-slate-900">No accepted connections yet.</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Once a contact request is approved, private chat and verified contacts will appear here.
-          </p>
-        </div>
       ) : (
-        <div className="space-y-3">
-          {connected.map((c: any) => (
-            <ContactRequestCard
-              key={c.id}
-              id={c.id}
-              type="connected"
-              listingId={c.listingId}
-              listingTitle={c.listingTitle}
-              listingLocation={c.listingLocation}
-              listingRent={c.listingRent}
-              listingStatus={c.listingStatus}
-              listingOwnerId={c.listingOwnerId}
-              status="ACCEPTED"
-              connectedAt={c.connectedAt}
-              currentUserId={currentUser?.id}
-              occupancyStatus={c.occupancyStatus}
-              occupancyInitiatorId={c.occupancyInitiatorId}
-              occupiedConfirmedAt={c.occupiedConfirmedAt}
-              occupiedUndoUntil={c.occupiedUndoUntil}
-              contact={c.contact}
-              role={c.role}
-              onActionComplete={fetchInbox}
-            />
-          ))}
+        <div>
+          {activeTab === 'received' && (
+            <div className="space-y-4">
+              {received.length === 0 ? (
+                <div className="bg-white rounded-3xl border border-[#DADCE0] p-12 text-center space-y-2 shadow-2xs">
+                  <InboxIcon className="w-8 h-8 text-slate-300 mx-auto" />
+                  <h3 className="font-bold text-[#202124] text-sm">No incoming requests yet</h3>
+                  <p className="text-xs text-[#5F6368] max-w-sm mx-auto">
+                    When other students request your contact information for your listings, they will appear here.
+                  </p>
+                </div>
+              ) : (
+                received.map((req: any) => (
+                  <ContactRequestCard
+                    key={req.id}
+                    {...req}
+                    type="received"
+                    currentUserId={currentUser?.id}
+                    onActionComplete={fetchInbox}
+                  />
+                ))
+              )}
+            </div>
+          )}
+
+          {activeTab === 'connected' && (
+            <div className="space-y-4">
+              {connected.length === 0 ? (
+                <div className="bg-white rounded-3xl border border-[#DADCE0] p-12 text-center space-y-2 shadow-2xs">
+                  <UserCheck className="w-8 h-8 text-slate-300 mx-auto" />
+                  <h3 className="font-bold text-[#202124] text-sm">No active connections yet</h3>
+                  <p className="text-xs text-[#5F6368] max-w-sm mx-auto">
+                    Approved contact requests unlock mutual private numbers and chat history here.
+                  </p>
+                </div>
+              ) : (
+                connected.map((req: any) => (
+                  <ContactRequestCard
+                    key={req.id}
+                    {...req}
+                    type="connected"
+                    currentUserId={currentUser?.id}
+                    onActionComplete={fetchInbox}
+                  />
+                ))
+              )}
+            </div>
+          )}
+
+          {activeTab === 'sent' && (
+            <div className="space-y-4">
+              {sent.length === 0 ? (
+                <div className="bg-white rounded-3xl border border-[#DADCE0] p-12 text-center space-y-2 shadow-2xs">
+                  <Send className="w-8 h-8 text-slate-300 mx-auto" />
+                  <h3 className="font-bold text-[#202124] text-sm">No sent requests</h3>
+                  <p className="text-xs text-[#5F6368] max-w-sm mx-auto">
+                    Browse accommodation listings and click &ldquo;Request Contact&rdquo; to reach out to owners safely.
+                  </p>
+                </div>
+              ) : (
+                sent.map((req: any) => (
+                  <ContactRequestCard
+                    key={req.id}
+                    {...req}
+                    type="sent"
+                    currentUserId={currentUser?.id}
+                    onActionComplete={fetchInbox}
+                  />
+                ))
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

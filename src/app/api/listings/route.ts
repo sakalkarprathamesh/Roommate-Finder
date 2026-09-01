@@ -22,10 +22,6 @@ export async function GET(req: Request) {
     const includeDemo = url.searchParams.get('includeDemo') === 'true';
     const demoOnly = url.searchParams.get('demoOnly') === 'true';
 
-    // Demo filtering:
-    // - demoOnly=true: only returns isDemo = true
-    // - includeDemo=true: returns both
-    // - default: only returns isDemo = false (real data)
     const demoFilter = demoOnly
       ? { isDemo: true }
       : includeDemo
@@ -33,31 +29,39 @@ export async function GET(req: Request) {
       : { isDemo: false };
 
     const statusParam = url.searchParams.get('status');
-    // Case-insensitive status filter; empty or 'ALL' returns all listings
-    const statusFilter =
-      statusParam === null
-        ? 'ACTIVE'
-        : statusParam.trim() === '' || statusParam.toUpperCase() === 'ALL'
-        ? undefined
-        : statusParam.trim();
+    
+    // Status Security Filter:
+    // - Default (null): Public search returns only ACTIVE and VERIFIED listings.
+    // - ALL: Returns all statuses (used by owner manage pages or admin).
+    // - Specific status (e.g. ACTIVE, VERIFIED, PENDING_VERIFICATION, REJECTED).
+    let statusCondition: any = undefined;
+    if (statusParam === null || statusParam === '') {
+      statusCondition = {
+        OR: [
+          { status: 'ACTIVE' },
+          { status: 'VERIFIED' },
+          { status: 'active' },
+          { status: 'verified' },
+        ],
+      };
+    } else if (statusParam.toUpperCase() === 'ALL') {
+      statusCondition = undefined;
+    } else {
+      statusCondition = {
+        OR: [
+          { status: statusParam.toUpperCase() },
+          { status: statusParam.toLowerCase() },
+          { status: statusParam },
+        ],
+      };
+    }
 
     const now = new Date();
 
     const listings = await prisma.listing.findMany({
       where: {
         ...demoFilter,
-        ...(statusFilter
-          ? {
-              OR: [
-                { status: statusFilter.toUpperCase() },
-                { status: statusFilter.toLowerCase() },
-                { status: statusFilter },
-              ],
-            }
-          : {}),
-        ...(statusFilter && statusFilter.toUpperCase() === 'ACTIVE'
-          ? { expiresAt: { gte: now } }
-          : {}),
+        ...(statusCondition ? statusCondition : {}),
         owner: {
           isActive: true,
           ...demoFilter,
@@ -79,6 +83,7 @@ export async function GET(req: Request) {
                 { title: { contains: q } },
                 { description: { contains: q } },
                 { location: { contains: q } },
+                { address: { contains: q } },
                 { owner: { profile: { name: { contains: q } } } },
               ],
             }
@@ -130,17 +135,32 @@ export async function POST(req: Request) {
       accommodationType,
       roomType,
       location,
+      address,
       rent,
       deposit,
+      singleRent,
+      doubleRent,
+      tripleRent,
+      maintenanceCharges,
+      noticePeriod,
+      pgType,
+      bedrooms,
+      bathrooms,
+      furnishing,
+      preferredTenant,
+      availableFrom,
+      amenities,
+      photos,
       currentOccupants,
       vacancies,
       totalCapacity,
       moveInDate,
       description,
+      status,
       isDemo,
     } = body;
 
-    if (!title || !listingType || !accommodationType || !roomType || !location || !rent || !moveInDate || !description) {
+    if (!title || !location || !rent || !description) {
       return NextResponse.json({ error: 'Please fill in all required fields' }, { status: 400 });
     }
 
@@ -150,38 +170,53 @@ export async function POST(req: Request) {
     const vacanciesNum = parseInt(vacancies || '1', 10);
     const capacityNum = parseInt(totalCapacity || '1', 10);
 
-    if (rentNum < 0 || depositNum < 0 || occupantsNum < 0 || vacanciesNum < 0 || capacityNum < 1) {
-      return NextResponse.json({ error: 'Values cannot be negative, and capacity must be at least 1' }, { status: 400 });
-    }
-
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
-
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 60); // 60 days
     const isListingDemo = Boolean(isDemo) || Boolean((user as any).isDemo);
+
+    // Initial status: PG and Flat listings default to PENDING_VERIFICATION
+    const initialStatus = status || (accommodationType === 'PG' || accommodationType === 'Flat' ? 'PENDING_VERIFICATION' : 'ACTIVE');
 
     const listing = await prisma.listing.create({
       data: {
         ownerId: user.id,
         title: title.trim(),
-        listingType,
-        accommodationType,
-        roomType,
+        listingType: listingType || 'HAVE_VACANCY',
+        accommodationType: accommodationType || 'Room',
+        roomType: roomType || 'Single',
         location,
+        address: address?.trim() || null,
         rent: rentNum,
         deposit: depositNum,
+        singleRent: singleRent ? parseInt(singleRent, 10) : null,
+        doubleRent: doubleRent ? parseInt(doubleRent, 10) : null,
+        tripleRent: tripleRent ? parseInt(tripleRent, 10) : null,
+        maintenanceCharges: maintenanceCharges ? parseInt(maintenanceCharges, 10) : 0,
+        noticePeriod: noticePeriod || null,
+        pgType: pgType || null,
+        bedrooms: bedrooms ? parseInt(bedrooms, 10) : null,
+        bathrooms: bathrooms ? parseInt(bathrooms, 10) : null,
+        furnishing: furnishing || null,
+        preferredTenant: preferredTenant || null,
+        availableFrom: availableFrom || null,
+        amenities: amenities || null,
+        photos: photos || null,
         currentOccupants: occupantsNum,
         vacancies: vacanciesNum,
         totalCapacity: capacityNum,
-        moveInDate: moveInDate.trim(),
+        moveInDate: (moveInDate || availableFrom || 'Immediately').trim(),
         expiresAt,
         description: description.trim(),
-        status: 'ACTIVE',
+        status: initialStatus,
+        submittedAt: new Date(),
         isDemo: isListingDemo,
       },
     });
 
     return NextResponse.json({
       listing,
-      message: 'Accommodation listing published successfully',
+      message: initialStatus === 'PENDING_VERIFICATION'
+        ? 'Listing submitted and is waiting for admin verification'
+        : 'Accommodation listing published successfully',
     });
   } catch (error) {
     console.error('Create listing error:', error);
