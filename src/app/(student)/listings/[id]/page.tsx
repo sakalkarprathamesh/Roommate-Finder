@@ -25,7 +25,7 @@ import {
   Home,
   CheckCheck,
 } from 'lucide-react';
-import { LISTING_TYPES, REPORT_REASONS } from '@/lib/constants';
+import { LISTING_TYPES, REPORT_REASONS, formatMoveInDate } from '@/lib/constants';
 import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function ListingDetailPage() {
@@ -238,6 +238,8 @@ export default function ListingDetailPage() {
             <p className="text-xs text-[#5F6368] flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-[#EA4335] inline" />
               <span>{listing.address || listing.location}</span>
+              <span>•</span>
+              <span>Move-in: {formatMoveInDate(listing.moveInDate || listing.availableFrom)}</span>
               <span>•</span>
               <span>Listed {new Date(listing.createdAt).toLocaleDateString()}</span>
             </p>

@@ -9,6 +9,9 @@ import {
   PUNE_AREAS,
 } from '@/lib/constants';
 import { Save, AlertCircle, CheckCircle2, Building, Calendar, IndianRupee, Users, ArrowRight } from 'lucide-react';
+import NumericInput from '@/components/ui/NumericInput';
+import MoveInDateSelector from '@/components/listings/MoveInDateSelector';
+import { normalizeNumericInput, parseNumericValue } from '@/lib/numberUtils';
 
 interface ListingFormProps {
   initialData?: any;
@@ -18,25 +21,18 @@ interface ListingFormProps {
 export default function ListingForm({ initialData, isEdit = false }: ListingFormProps) {
   const router = useRouter();
 
-  const normalizeAmountInput = (val: string): string => {
-    if (val === '') return '';
-    const clean = val.replace(/[^\d]/g, '');
-    if (clean === '') return '';
-    return clean.replace(/^0+(?=\d)/, '');
-  };
-
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
     listingType: initialData?.listingType || 'HAVE_VACANCY',
     accommodationType: initialData?.accommodationType || 'Flat',
     roomType: initialData?.roomType || 'Shared',
     location: initialData?.location || PUNE_AREAS[0],
-    rent: initialData?.rent !== undefined ? normalizeAmountInput(String(initialData.rent)) : '7500',
-    deposit: initialData?.deposit !== undefined ? normalizeAmountInput(String(initialData.deposit)) : '15000',
-    currentOccupants: initialData?.currentOccupants || 2,
-    vacancies: initialData?.vacancies || 1,
-    totalCapacity: initialData?.totalCapacity || 3,
-    moveInDate: initialData?.moveInDate || 'Immediately',
+    rent: initialData?.rent !== undefined ? normalizeNumericInput(initialData.rent) : '7500',
+    deposit: initialData?.deposit !== undefined ? normalizeNumericInput(initialData.deposit) : '15000',
+    currentOccupants: initialData?.currentOccupants !== undefined ? normalizeNumericInput(initialData.currentOccupants) : '2',
+    vacancies: initialData?.vacancies !== undefined ? normalizeNumericInput(initialData.vacancies) : '1',
+    totalCapacity: initialData?.totalCapacity !== undefined ? normalizeNumericInput(initialData.totalCapacity) : '3',
+    moveInDate: initialData?.moveInDate || 'IMMEDIATELY',
     description: initialData?.description || '',
     status: initialData?.status || 'ACTIVE',
   });
@@ -55,11 +51,14 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
     setError('');
     setSuccess('');
 
-    const parsedRent = formData.rent === '' ? 0 : parseInt(formData.rent, 10);
-    const parsedDeposit = formData.deposit === '' ? 0 : parseInt(formData.deposit, 10);
+    const parsedRent = parseNumericValue(formData.rent, 0);
+    const parsedDeposit = parseNumericValue(formData.deposit, 0);
+    const parsedOccupants = parseNumericValue(formData.currentOccupants, 0);
+    const parsedVacancies = parseNumericValue(formData.vacancies, 1);
+    const parsedCapacity = parseNumericValue(formData.totalCapacity, parsedOccupants + parsedVacancies);
 
-    if (isNaN(parsedRent) || parsedRent < 0 || isNaN(parsedDeposit) || parsedDeposit < 0 || formData.currentOccupants < 0 || formData.vacancies < 0 || formData.totalCapacity < 1) {
-      setError('Rent, deposit, occupants and vacancies cannot be negative, and capacity must be at least 1');
+    if (parsedRent < 0 || parsedDeposit < 0 || parsedOccupants < 0 || parsedVacancies < 1 || parsedCapacity < 1) {
+      setError('Rent, deposit, occupants cannot be negative, and vacancies/capacity must be at least 1');
       setLoading(false);
       return;
     }
@@ -75,6 +74,9 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
           ...formData,
           rent: parsedRent,
           deposit: parsedDeposit,
+          currentOccupants: parsedOccupants,
+          vacancies: parsedVacancies,
+          totalCapacity: parsedCapacity,
         }),
       });
 
@@ -104,8 +106,6 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
     }
   };
 
-  const isVacancyType = formData.listingType === 'HAVE_VACANCY' || formData.listingType === 'HAVE_ROOM';
-
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-[#DADCE0] p-6 sm:p-8 shadow-sm space-y-6">
       {error && (
@@ -133,14 +133,28 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
               key={key}
               type="button"
               onClick={() => handleChange('listingType', key)}
-              className={`p-3.5 rounded-2xl border text-left font-bold text-xs transition-all flex items-center justify-between cursor-pointer ${
+              className={`p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between cursor-pointer ${
                 formData.listingType === key
-                  ? 'border-[#1A73E8] bg-[#E8F0FE] text-[#1A73E8] ring-2 ring-[#1A73E8]/20 shadow-2xs'
-                  : 'border-[#DADCE0] hover:bg-slate-50 text-[#202124]'
+                  ? 'border-[#1A73E8] bg-[#E8F0FE] shadow-2xs'
+                  : 'border-[#DADCE0] bg-[#F8F9FA] hover:bg-white'
               }`}
             >
-              <span>{label}</span>
-              {formData.listingType === key && <CheckCircle2 className="w-4 h-4 text-[#1A73E8]" />}
+              <div>
+                <div className="font-bold text-xs text-[#202124]">{label}</div>
+                <div className="text-[11px] text-[#5F6368]">
+                  {key === 'HAVE_VACANCY' && 'I have a vacant bed/room in my PG or Flat'}
+                  {key === 'NEED_ROOMMATE' && 'I am looking for a roommate to search together'}
+                  {key === 'NEED_ACCOMMODATION' && 'I am looking for an existing vacant room/PG'}
+                  {key === 'HAVE_ROOM' && 'I am an owner/student offering a full room'}
+                </div>
+              </div>
+              <div
+                className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                  formData.listingType === key ? 'border-[#1A73E8] bg-[#1A73E8]' : 'border-slate-300'
+                }`}
+              >
+                {formData.listingType === key && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+              </div>
             </button>
           ))}
         </div>
@@ -149,27 +163,23 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
       {/* 2. Listing Title */}
       <div className="space-y-1">
         <label className="block text-xs font-bold text-[#202124]">
-          Listing Headline / Title *
+          Listing Title *
         </label>
         <input
           type="text"
           required
           value={formData.title}
           onChange={(e) => handleChange('title', e.target.value)}
-          placeholder={
-            isVacancyType
-              ? 'e.g. 1 Vacancy in 2BHK Flat near MIT-ADT Campus'
-              : 'e.g. Looking for 1 Roommate for flat in Loni Kalbhor'
-          }
+          placeholder="e.g. 1 Vacancy in 2BHK Flat near Gate 2, MIT-ADT"
           className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
         />
       </div>
 
-      {/* 3. Accommodation & Room Type */}
+      {/* 3. Core Property Specifications */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="space-y-1">
           <label className="block text-xs font-bold text-[#202124]">
-            Accommodation *
+            Property Type *
           </label>
           <select
             value={formData.accommodationType}
@@ -225,52 +235,41 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
           <label className="block text-xs font-bold text-[#202124]">
             Monthly Rent per Person (₹) *
           </label>
-          <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              required
-              value={formData.rent}
-              onChange={(e) => handleChange('rent', normalizeAmountInput(e.target.value))}
-              placeholder="e.g. 7500"
-              className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 pl-8 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
-            />
-          </div>
+          <NumericInput
+            required
+            value={formData.rent}
+            onChangeValue={(val) => handleChange('rent', val)}
+            prefix="₹"
+            placeholder="e.g. 7500"
+            className="bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white"
+          />
         </div>
 
         <div className="space-y-1">
           <label className="block text-xs font-bold text-[#202124]">
             Deposit (If Any) (₹)
           </label>
-          <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={formData.deposit}
-              onChange={(e) => handleChange('deposit', normalizeAmountInput(e.target.value))}
-              placeholder="e.g. 15000"
-              className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 pl-8 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
-            />
-          </div>
+          <NumericInput
+            value={formData.deposit}
+            onChangeValue={(val) => handleChange('deposit', val)}
+            prefix="₹"
+            placeholder="e.g. 15000"
+            className="bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white"
+          />
         </div>
       </div>
 
-      {/* 5. Occupancy Details */}
+      {/* 5. Occupancy Details & Move-In Date */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="space-y-1">
           <label className="block text-xs font-bold text-[#202124]">
             Current Occupants
           </label>
-          <input
-            type="number"
-            min="0"
+          <NumericInput
             value={formData.currentOccupants}
-            onChange={(e) => handleChange('currentOccupants', parseInt(e.target.value, 10) || 0)}
-            className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
+            onChangeValue={(val) => handleChange('currentOccupants', val)}
+            placeholder="e.g. 2"
+            className="bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white"
           />
         </div>
 
@@ -278,25 +277,19 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
           <label className="block text-xs font-bold text-[#202124]">
             Available Vacancies
           </label>
-          <input
-            type="number"
-            min="1"
+          <NumericInput
             value={formData.vacancies}
-            onChange={(e) => handleChange('vacancies', parseInt(e.target.value, 10) || 1)}
-            className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
+            onChangeValue={(val) => handleChange('vacancies', val)}
+            placeholder="e.g. 1"
+            className="bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white"
           />
         </div>
 
         <div className="space-y-1">
-          <label className="block text-xs font-bold text-[#202124]">
-            Move-in Date / Period
-          </label>
-          <input
-            type="text"
+          <MoveInDateSelector
             value={formData.moveInDate}
-            onChange={(e) => handleChange('moveInDate', e.target.value)}
-            placeholder="e.g. Immediately"
-            className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
+            onChange={(val) => handleChange('moveInDate', val)}
+            label="Move-in Date / Period"
           />
         </div>
       </div>

@@ -206,3 +206,37 @@ export const FLAT_AMENITIES = [
   { id: "balcony", label: "Spacious Balcony", emoji: "🪴" },
   { id: "security", label: "Gated Society Security", emoji: "🛡️" },
 ] as const;
+
+export const MOVE_IN_OPTIONS = [
+  { value: "IMMEDIATELY", label: "Immediately" },
+  { value: "WITHIN_7_DAYS", label: "Within 7 days" },
+  { value: "WITHIN_15_DAYS", label: "Within 15 days" },
+  { value: "WITHIN_1_MONTH", label: "Within 1 month" },
+  { value: "ONE_TO_THREE_MONTHS", label: "1–3 months" },
+  { value: "THREE_PLUS_MONTHS", label: "3+ months" },
+  { value: "SPECIFIC_DATE", label: "Specific date" },
+  { value: "FLEXIBLE", label: "Flexible" },
+] as const;
+
+export function formatMoveInDate(raw: string | undefined | null): string {
+  if (!raw) return "Flexible";
+  const match = MOVE_IN_OPTIONS.find((opt) => opt.value === raw);
+  if (match) return match.label;
+
+  // Handle standard date format YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    const [year, month, day] = raw.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    }
+  }
+
+  // Backward compatibility fallback for existing legacy strings
+  if (raw.toLowerCase() === "immediately") return "Immediately";
+  return raw;
+}

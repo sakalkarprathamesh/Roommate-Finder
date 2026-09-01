@@ -11,7 +11,7 @@ import {
   CheckCircle2,
   ArrowRight,
 } from 'lucide-react';
-import { LISTING_TYPES } from '@/lib/constants';
+import { LISTING_TYPES, formatMoveInDate } from '@/lib/constants';
 
 interface ListingCardProps {
   id: string;
@@ -144,7 +144,7 @@ export default function ListingCard({
 
           <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100 truncate">
             <Calendar className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-            <span className="truncate">{moveInDate}</span>
+            <span className="truncate">{formatMoveInDate(moveInDate)}</span>
           </div>
         </div>
       </div>

@@ -18,6 +18,9 @@ import {
   Calendar,
 } from 'lucide-react';
 import { PUNE_AREAS, FLAT_AMENITIES } from '@/lib/constants';
+import NumericInput from '@/components/ui/NumericInput';
+import MoveInDateSelector from '@/components/listings/MoveInDateSelector';
+import { normalizeNumericInput, parseNumericValue } from '@/lib/numberUtils';
 
 interface FlatListingFormProps {
   initialData?: any;
@@ -48,18 +51,12 @@ export default function FlatListingForm({ initialData, isEdit = false }: FlatLis
   const [furnishing, setFurnishing] = useState<string>(initialData?.furnishing || 'Semi-Furnished');
   const [availableRooms, setAvailableRooms] = useState<string>(initialData?.roomType || 'Private');
   const [preferredTenant, setPreferredTenant] = useState<string>(initialData?.preferredTenant || 'Students');
-  const normalizeAmountInput = (val: string): string => {
-    if (val === '') return '';
-    const clean = val.replace(/[^\d]/g, '');
-    if (clean === '') return '';
-    return clean.replace(/^0+(?=\d)/, '');
-  };
 
   // Pricing
-  const [rent, setRent] = useState(initialData?.rent !== undefined ? normalizeAmountInput(String(initialData.rent)) : '');
-  const [deposit, setDeposit] = useState(initialData?.deposit !== undefined ? normalizeAmountInput(String(initialData.deposit)) : '');
-  const [maintenanceCharges, setMaintenanceCharges] = useState(initialData?.maintenanceCharges !== undefined ? normalizeAmountInput(String(initialData.maintenanceCharges)) : '');
-  const [availableFrom, setAvailableFrom] = useState(initialData?.availableFrom || 'Immediately');
+  const [rent, setRent] = useState(initialData?.rent !== undefined ? normalizeNumericInput(initialData.rent) : '');
+  const [deposit, setDeposit] = useState(initialData?.deposit !== undefined ? normalizeNumericInput(initialData.deposit) : '');
+  const [maintenanceCharges, setMaintenanceCharges] = useState(initialData?.maintenanceCharges !== undefined ? normalizeNumericInput(initialData.maintenanceCharges) : '');
+  const [availableFrom, setAvailableFrom] = useState(initialData?.availableFrom || initialData?.moveInDate || 'IMMEDIATELY');
 
   // Amenities & Photos
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(
@@ -140,9 +137,9 @@ export default function FlatListingForm({ initialData, isEdit = false }: FlatLis
 
     setSubmitting(true);
 
-    const parsedRent = parseInt(rent, 10);
-    const parsedDeposit = deposit ? parseInt(deposit, 10) : 0;
-    const parsedMaintenance = maintenanceCharges ? parseInt(maintenanceCharges, 10) : 0;
+    const parsedRent = parseNumericValue(rent, 0);
+    const parsedDeposit = parseNumericValue(deposit, 0);
+    const parsedMaintenance = parseNumericValue(maintenanceCharges, 0);
 
     const payload = {
       title: title.trim(),
@@ -412,63 +409,45 @@ export default function FlatListingForm({ initialData, isEdit = false }: FlatLis
             <label className="text-xs font-bold text-slate-700 block">
               Monthly Rent <span className="text-rose-500">*</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="e.g. 18000"
-                value={rent}
-                onChange={(e) => setRent(normalizeAmountInput(e.target.value))}
-                className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
-                required
-              />
-            </div>
+            <NumericInput
+              required
+              value={rent}
+              onChangeValue={setRent}
+              prefix="₹"
+              placeholder="e.g. 18000"
+              className="bg-slate-50 border border-slate-200 rounded-xl py-2.5 text-slate-900 focus:bg-white"
+            />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 block">Deposit (If Any)</label>
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="Optional"
-                value={deposit}
-                onChange={(e) => setDeposit(normalizeAmountInput(e.target.value))}
-                className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
-              />
-            </div>
+            <NumericInput
+              value={deposit}
+              onChangeValue={setDeposit}
+              prefix="₹"
+              placeholder="Optional"
+              className="bg-slate-50 border border-slate-200 rounded-xl py-2.5 text-slate-900 focus:bg-white"
+            />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 block">Maintenance (If Any)</label>
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="Optional"
-                value={maintenanceCharges}
-                onChange={(e) => setMaintenanceCharges(normalizeAmountInput(e.target.value))}
-                className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
-              />
-            </div>
+            <NumericInput
+              value={maintenanceCharges}
+              onChangeValue={setMaintenanceCharges}
+              prefix="₹"
+              placeholder="Optional"
+              className="bg-slate-50 border border-slate-200 rounded-xl py-2.5 text-slate-900 focus:bg-white"
+            />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 block">Available From</label>
-            <input
-              type="text"
-              placeholder="e.g. Immediately, 1st October 2026"
+            <MoveInDateSelector
               value={availableFrom}
-              onChange={(e) => setAvailableFrom(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
+              onChange={setAvailableFrom}
+              label="Available From / Move-in Date"
             />
           </div>
 

@@ -20,6 +20,9 @@ import {
   Building,
 } from 'lucide-react';
 import { PUNE_AREAS, PG_AMENITIES } from '@/lib/constants';
+import NumericInput from '@/components/ui/NumericInput';
+import MoveInDateSelector from '@/components/listings/MoveInDateSelector';
+import { normalizeNumericInput, parseNumericValue } from '@/lib/numberUtils';
 
 interface PGListingFormProps {
   initialData?: any;
@@ -44,20 +47,15 @@ export default function PGListingForm({ initialData, isEdit = false }: PGListing
   const [pgType, setPgType] = useState(initialData?.pgType || 'Both');
   const [address, setAddress] = useState(initialData?.address || '');
   const [location, setLocation] = useState(initialData?.location || PUNE_AREAS[0]);
-  const normalizeAmountInput = (val: string): string => {
-    if (val === '') return '';
-    const clean = val.replace(/[^\d]/g, '');
-    if (clean === '') return '';
-    return clean.replace(/^0+(?=\d)/, '');
-  };
 
   // Occupancy & Pricing
-  const [singleRent, setSingleRent] = useState(initialData?.singleRent !== undefined ? normalizeAmountInput(String(initialData.singleRent)) : '');
-  const [doubleRent, setDoubleRent] = useState(initialData?.doubleRent !== undefined ? normalizeAmountInput(String(initialData.doubleRent)) : '');
-  const [tripleRent, setTripleRent] = useState(initialData?.tripleRent !== undefined ? normalizeAmountInput(String(initialData.tripleRent)) : '');
-  const [deposit, setDeposit] = useState(initialData?.deposit !== undefined ? normalizeAmountInput(String(initialData.deposit)) : '');
-  const [maintenanceCharges, setMaintenanceCharges] = useState(initialData?.maintenanceCharges !== undefined ? normalizeAmountInput(String(initialData.maintenanceCharges)) : '');
+  const [singleRent, setSingleRent] = useState(initialData?.singleRent !== undefined ? normalizeNumericInput(initialData.singleRent) : '');
+  const [doubleRent, setDoubleRent] = useState(initialData?.doubleRent !== undefined ? normalizeNumericInput(initialData.doubleRent) : '');
+  const [tripleRent, setTripleRent] = useState(initialData?.tripleRent !== undefined ? normalizeNumericInput(initialData.tripleRent) : '');
+  const [deposit, setDeposit] = useState(initialData?.deposit !== undefined ? normalizeNumericInput(initialData.deposit) : '');
+  const [maintenanceCharges, setMaintenanceCharges] = useState(initialData?.maintenanceCharges !== undefined ? normalizeNumericInput(initialData.maintenanceCharges) : '');
   const [noticePeriod, setNoticePeriod] = useState(initialData?.noticePeriod || '1 Month');
+  const [moveInDate, setMoveInDate] = useState(initialData?.moveInDate || 'IMMEDIATELY');
 
   // Amenities & Photos
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(
@@ -144,29 +142,32 @@ export default function PGListingForm({ initialData, isEdit = false }: PGListing
 
     setSubmitting(true);
 
-    const baseRent = parseInt(singleRent || doubleRent || tripleRent || '0', 10);
-    const parsedDeposit = deposit ? parseInt(deposit, 10) : 0;
-    const parsedMaintenance = maintenanceCharges ? parseInt(maintenanceCharges, 10) : 0;
+    const parsedSingle = parseNumericValue(singleRent, 0);
+    const parsedDouble = parseNumericValue(doubleRent, 0);
+    const parsedTriple = parseNumericValue(tripleRent, 0);
+    const baseRent = parsedSingle || parsedDouble || parsedTriple || 0;
+    const parsedDeposit = parseNumericValue(deposit, 0);
+    const parsedMaintenance = parseNumericValue(maintenanceCharges, 0);
 
     const payload = {
       title: title.trim(),
       listingType: 'HAVE_VACANCY',
       accommodationType: 'PG',
-      roomType: singleRent ? 'Single' : doubleRent ? 'Double' : 'Shared',
+      roomType: parsedSingle ? 'Single' : parsedDouble ? 'Double' : 'Shared',
       location,
       address: address.trim(),
       rent: baseRent,
       deposit: parsedDeposit,
-      singleRent: singleRent ? parseInt(singleRent, 10) : null,
-      doubleRent: doubleRent ? parseInt(doubleRent, 10) : null,
-      tripleRent: tripleRent ? parseInt(tripleRent, 10) : null,
+      singleRent: parsedSingle || null,
+      doubleRent: parsedDouble || null,
+      tripleRent: parsedTriple || null,
       maintenanceCharges: parsedMaintenance,
       noticePeriod,
       pgType,
       amenities: JSON.stringify(selectedAmenities),
       photos: JSON.stringify(photos),
       description: description.trim(),
-      moveInDate: 'Immediately',
+      moveInDate: moveInDate || 'IMMEDIATELY',
       status: 'PENDING_VERIFICATION',
     };
 
@@ -403,90 +404,65 @@ export default function PGListingForm({ initialData, isEdit = false }: PGListing
           {/* Single */}
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <label className="text-xs font-bold text-slate-900 block">Single Occupancy</label>
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="e.g. 10000"
-                value={singleRent}
-                onChange={(e) => setSingleRent(normalizeAmountInput(e.target.value))}
-                className="w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
-            </div>
+            <NumericInput
+              value={singleRent}
+              onChangeValue={setSingleRent}
+              prefix="₹"
+              placeholder="e.g. 10000"
+              className="bg-white border border-slate-200 rounded-xl py-2.5 text-slate-900"
+            />
             <span className="text-[11px] text-slate-400 font-medium">₹/month</span>
           </div>
 
           {/* Double */}
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <label className="text-xs font-bold text-slate-900 block">Double Occupancy</label>
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="e.g. 6500"
-                value={doubleRent}
-                onChange={(e) => setDoubleRent(normalizeAmountInput(e.target.value))}
-                className="w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
-            </div>
+            <NumericInput
+              value={doubleRent}
+              onChangeValue={setDoubleRent}
+              prefix="₹"
+              placeholder="e.g. 6500"
+              className="bg-white border border-slate-200 rounded-xl py-2.5 text-slate-900"
+            />
             <span className="text-[11px] text-slate-400 font-medium">₹/month per bed</span>
           </div>
 
           {/* Triple */}
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <label className="text-xs font-bold text-slate-900 block">Triple Occupancy</label>
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="e.g. 5000"
-                value={tripleRent}
-                onChange={(e) => setTripleRent(normalizeAmountInput(e.target.value))}
-                className="w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
-            </div>
+            <NumericInput
+              value={tripleRent}
+              onChangeValue={setTripleRent}
+              prefix="₹"
+              placeholder="e.g. 5000"
+              className="bg-white border border-slate-200 rounded-xl py-2.5 text-slate-900"
+            />
             <span className="text-[11px] text-slate-400 font-medium">₹/month per bed</span>
           </div>
         </div>
 
         {/* Deposit & Other details */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2">
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 block">Deposit (If Any)</label>
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="Optional (e.g. 5000)"
-                value={deposit}
-                onChange={(e) => setDeposit(normalizeAmountInput(e.target.value))}
-                className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
-              />
-            </div>
+            <NumericInput
+              value={deposit}
+              onChangeValue={setDeposit}
+              prefix="₹"
+              placeholder="Optional"
+              className="bg-slate-50 border border-slate-200 rounded-xl py-2.5 text-slate-900 focus:bg-white"
+            />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 block">Maintenance Charges (If Any)</label>
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="Optional (e.g. 500)"
-                value={maintenanceCharges}
-                onChange={(e) => setMaintenanceCharges(normalizeAmountInput(e.target.value))}
-                className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
-              />
-            </div>
+            <label className="text-xs font-bold text-slate-700 block">Maintenance (If Any)</label>
+            <NumericInput
+              value={maintenanceCharges}
+              onChangeValue={setMaintenanceCharges}
+              prefix="₹"
+              placeholder="Optional"
+              className="bg-slate-50 border border-slate-200 rounded-xl py-2.5 text-slate-900 focus:bg-white"
+            />
           </div>
 
           <div className="space-y-1.5">
@@ -501,6 +477,14 @@ export default function PGListingForm({ initialData, isEdit = false }: PGListing
               <option value="2 Months">2 Months</option>
               <option value="Flexible">Flexible</option>
             </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <MoveInDateSelector
+              value={moveInDate}
+              onChange={setMoveInDate}
+              label="Move-in Date"
+            />
           </div>
         </div>
       </div>
