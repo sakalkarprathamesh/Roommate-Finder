@@ -420,8 +420,8 @@ export default function ProfilePage() {
               </span>
             </div>
 
-            {/* 10 Visual Flatmate Preference Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            {/* 12 Visual Flatmate Preference Cards with 3D Stickers */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 pt-2">
               {FLATMATE_PREFERENCES.map((pref) => {
                 const isSelected = formData.preferences?.includes(pref.id);
                 return (
@@ -429,27 +429,41 @@ export default function ProfilePage() {
                     key={pref.id}
                     type="button"
                     onClick={() => togglePreference(pref.id)}
-                    className={`p-4 rounded-3xl border text-left transition-all flex items-center justify-between cursor-pointer ${
+                    className={`p-3.5 sm:p-4 rounded-3xl border-2 text-center transition-all flex flex-col items-center justify-between gap-2.5 cursor-pointer relative group ${
                       isSelected
-                        ? 'border-[#1A73E8] dark:border-[#8AB4F8] bg-[#E8F0FE] dark:bg-[#1E3A5F] shadow-2xs'
-                        : 'border-[#DADCE0] dark:border-[#3C4043] bg-[#F8F9FA] dark:bg-[#202124] hover:bg-white dark:hover:bg-[#303134]'
+                        ? 'border-[#1A73E8] dark:border-[#8AB4F8] bg-[#E8F0FE] dark:bg-[#1E3A5F] ring-2 ring-[#1A73E8]/20 shadow-xs'
+                        : 'border-[#DADCE0] dark:border-[#3C4043] bg-[#F8F9FA] dark:bg-[#202124] hover:bg-white dark:hover:bg-[#303134] hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{pref.emoji}</span>
-                      <div>
-                        <p className={`font-bold text-xs ${isSelected ? 'text-[#1A73E8] dark:text-[#8AB4F8]' : 'text-[#202124] dark:text-[#FFFFFF]'}`}>
-                          {pref.title}
-                        </p>
-                        <p className="text-[11px] text-[#5F6368] dark:text-[#BDC1C6]">{pref.description}</p>
-                      </div>
-                    </div>
+                    {/* Checkmark badge */}
                     <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center text-xs transition-colors flex-shrink-0 ${
-                        isSelected ? 'bg-[#1A73E8] text-white' : 'border border-[#DADCE0] dark:border-[#5F6368] bg-white dark:bg-[#202124]'
+                      className={`absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-xs transition-colors ${
+                        isSelected
+                          ? 'bg-[#1A73E8] text-white'
+                          : 'border border-[#DADCE0] dark:border-[#5F6368] bg-white dark:bg-[#202124]'
                       }`}
                     >
                       {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                    </div>
+
+                    {/* 3D Illustrated Sticker Icon */}
+                    <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform">
+                      {pref.iconUrl ? (
+                        <img
+                          src={pref.iconUrl}
+                          alt={pref.title}
+                          className="w-full h-full object-contain rounded-full"
+                        />
+                      ) : (
+                        <span className="text-3xl">{(pref as any).emoji || '✨'}</span>
+                      )}
+                    </div>
+
+                    <div>
+                      <p className={`font-bold text-xs sm:text-sm ${isSelected ? 'text-[#1A73E8] dark:text-[#8AB4F8]' : 'text-[#202124] dark:text-[#FFFFFF]'}`}>
+                        {pref.title}
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-[#5F6368] dark:text-[#BDC1C6] line-clamp-1 mt-0.5">{pref.description}</p>
                     </div>
                   </button>
                 );

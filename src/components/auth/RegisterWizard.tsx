@@ -821,33 +821,35 @@ export default function RegisterWizard() {
         </div>
       )}
 
-      {/* ================= STEP 6 (SEEKER ONLY): Lifestyle & Flatmate Preferences ================= */}
+      {/* ================= STEP 6 (SEEKER ONLY): What type of Roommate do you like? ================= */}
       {step === 6 && role === 'SEEKER' && (
         <div className="space-y-6 animate-in fade-in duration-200">
           <div className="space-y-1.5">
             <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-              Lifestyle & Roommate Preferences
+              What type of Roommate do you like?
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-[#BDC1C6]">
-              Select at least 5 tags that describe your ideal flatmate habits. You can edit these anytime.
+              Select at least 5 preferences that describe your ideal flatmate habits. You can edit these anytime.
             </p>
           </div>
 
-          <div className="bg-white dark:bg-[#303134] rounded-3xl border border-slate-200 dark:border-[#3C4043] p-6 sm:p-8 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-[#303134] rounded-3xl border border-slate-200 dark:border-[#3C4043] p-6 sm:p-8 shadow-sm space-y-5">
             <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-[#E8EAED]">
-              <span>Popular Flatmate Tags</span>
+              <span>Roommate Preferences</span>
               <span
-                className={`px-2.5 py-0.5 rounded-full font-bold text-xs ${
+                className={`px-3 py-1 rounded-full font-bold text-xs ${
                   selectedPreferences.length >= 5
-                    ? 'bg-emerald-50 dark:bg-[#133E26] text-emerald-700 dark:text-[#81C995]'
-                    : 'bg-blue-50 dark:bg-[#1E3A5F] text-blue-600 dark:text-[#8AB4F8]'
+                    ? 'bg-emerald-50 dark:bg-[#133E26] text-emerald-700 dark:text-[#81C995] border border-emerald-200 dark:border-[#1E5E3A]'
+                    : 'bg-amber-50 dark:bg-[#3B3116] text-amber-700 dark:text-[#FDD663] border border-amber-200 dark:border-[#5C4813]'
                 }`}
               >
-                {selectedPreferences.length} of 5+ selected
+                {selectedPreferences.length >= 5
+                  ? `${selectedPreferences.length} preferences selected`
+                  : 'Add at least 5 preferences'}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 pt-1">
               {FLATMATE_PREFERENCES.map((pref) => {
                 const isSelected = selectedPreferences.includes(pref.id);
                 return (
@@ -858,27 +860,50 @@ export default function RegisterWizard() {
                       setError('');
                       togglePreference(pref.id);
                     }}
-                    className={`p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between cursor-pointer ${
+                    className={`p-3.5 sm:p-4 rounded-3xl border-2 transition-all flex flex-col items-center justify-between gap-2.5 text-center cursor-pointer relative group ${
                       isSelected
-                        ? 'border-blue-600 bg-blue-50/70 dark:bg-[#1E3A5F] shadow-2xs'
-                        : 'border-slate-200 dark:border-[#3C4043] bg-slate-50 dark:bg-[#202124] hover:bg-white dark:hover:bg-[#303134]'
+                        ? 'border-blue-600 bg-blue-50/70 dark:bg-[#1E3A5F] ring-2 ring-blue-600/20 shadow-xs'
+                        : 'border-slate-200 dark:border-[#3C4043] bg-slate-50 dark:bg-[#202124] hover:bg-white dark:hover:bg-[#303134] hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{pref.emoji}</span>
-                      <div>
-                        <div className={`text-xs font-bold ${isSelected ? 'text-blue-900 dark:text-[#8AB4F8]' : 'text-slate-800 dark:text-white'}`}>
-                          {pref.title}
-                        </div>
-                        <div className="text-[11px] text-slate-500 dark:text-[#BDC1C6]">{pref.description}</div>
-                      </div>
-                    </div>
+                    {/* Checkmark badge at top right */}
                     <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center text-xs transition-colors ${
-                        isSelected ? 'bg-blue-600 text-white' : 'border border-slate-300 dark:border-[#5F6368] bg-white dark:bg-[#202124]'
+                      className={`absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-xs transition-colors ${
+                        isSelected
+                          ? 'bg-blue-600 text-white'
+                          : 'border border-slate-300 dark:border-[#5F6368] bg-white dark:bg-[#202124]'
                       }`}
                     >
                       {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                    </div>
+
+                    {/* 3D Illustrated Sticker Icon */}
+                    <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform">
+                      {pref.iconUrl ? (
+                        <img
+                          src={pref.iconUrl}
+                          alt={pref.title}
+                          className="w-full h-full object-contain rounded-full"
+                        />
+                      ) : (
+                        <span className="text-3xl">{(pref as any).emoji || '✨'}</span>
+                      )}
+                    </div>
+
+                    {/* Title */}
+                    <div>
+                      <div
+                        className={`text-xs sm:text-sm font-black ${
+                          isSelected
+                            ? 'text-blue-900 dark:text-[#8AB4F8]'
+                            : 'text-slate-800 dark:text-white'
+                        }`}
+                      >
+                        {pref.title}
+                      </div>
+                      <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-[#BDC1C6] line-clamp-1 mt-0.5">
+                        {pref.description}
+                      </div>
                     </div>
                   </button>
                 );
