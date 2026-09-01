@@ -256,9 +256,14 @@ function FindContent() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Budget Max (₹)</label>
               <input
-                type="number"
-                value={filters.maxRent >= 999999 ? '' : filters.maxRent}
-                onChange={(e) => updateField('maxRent', parseInt(e.target.value, 10) || 999999)}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={filters.maxRent >= 999999 ? '' : String(filters.maxRent)}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^\d]/g, '').replace(/^0+(?=\d)/, '');
+                  updateField('maxRent', val === '' ? 999999 : parseInt(val, 10));
+                }}
                 placeholder="e.g. 10000"
                 className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5"
               />

@@ -48,11 +48,17 @@ export default function FlatListingForm({ initialData, isEdit = false }: FlatLis
   const [furnishing, setFurnishing] = useState<string>(initialData?.furnishing || 'Semi-Furnished');
   const [availableRooms, setAvailableRooms] = useState<string>(initialData?.roomType || 'Private');
   const [preferredTenant, setPreferredTenant] = useState<string>(initialData?.preferredTenant || 'Students');
+  const normalizeAmountInput = (val: string): string => {
+    if (val === '') return '';
+    const clean = val.replace(/[^\d]/g, '');
+    if (clean === '') return '';
+    return clean.replace(/^0+(?=\d)/, '');
+  };
 
   // Pricing
-  const [rent, setRent] = useState(initialData?.rent?.toString() || '');
-  const [deposit, setDeposit] = useState(initialData?.deposit?.toString() || '');
-  const [maintenanceCharges, setMaintenanceCharges] = useState(initialData?.maintenanceCharges?.toString() || '');
+  const [rent, setRent] = useState(initialData?.rent !== undefined ? normalizeAmountInput(String(initialData.rent)) : '');
+  const [deposit, setDeposit] = useState(initialData?.deposit !== undefined ? normalizeAmountInput(String(initialData.deposit)) : '');
+  const [maintenanceCharges, setMaintenanceCharges] = useState(initialData?.maintenanceCharges !== undefined ? normalizeAmountInput(String(initialData.maintenanceCharges)) : '');
   const [availableFrom, setAvailableFrom] = useState(initialData?.availableFrom || 'Immediately');
 
   // Amenities & Photos
@@ -409,10 +415,12 @@ export default function FlatListingForm({ initialData, isEdit = false }: FlatLis
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="e.g. 18000"
                 value={rent}
-                onChange={(e) => setRent(e.target.value)}
+                onChange={(e) => setRent(normalizeAmountInput(e.target.value))}
                 className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
                 required
               />
@@ -424,10 +432,12 @@ export default function FlatListingForm({ initialData, isEdit = false }: FlatLis
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="Optional"
                 value={deposit}
-                onChange={(e) => setDeposit(e.target.value)}
+                onChange={(e) => setDeposit(normalizeAmountInput(e.target.value))}
                 className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
               />
             </div>
@@ -438,10 +448,12 @@ export default function FlatListingForm({ initialData, isEdit = false }: FlatLis
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="Optional"
                 value={maintenanceCharges}
-                onChange={(e) => setMaintenanceCharges(e.target.value)}
+                onChange={(e) => setMaintenanceCharges(normalizeAmountInput(e.target.value))}
                 className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
               />
             </div>

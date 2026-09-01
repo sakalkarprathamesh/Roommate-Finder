@@ -18,14 +18,21 @@ interface ListingFormProps {
 export default function ListingForm({ initialData, isEdit = false }: ListingFormProps) {
   const router = useRouter();
 
+  const normalizeAmountInput = (val: string): string => {
+    if (val === '') return '';
+    const clean = val.replace(/[^\d]/g, '');
+    if (clean === '') return '';
+    return clean.replace(/^0+(?=\d)/, '');
+  };
+
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
     listingType: initialData?.listingType || 'HAVE_VACANCY',
     accommodationType: initialData?.accommodationType || 'Flat',
     roomType: initialData?.roomType || 'Shared',
     location: initialData?.location || PUNE_AREAS[0],
-    rent: initialData?.rent || 7500,
-    deposit: initialData?.deposit || 15000,
+    rent: initialData?.rent !== undefined ? normalizeAmountInput(String(initialData.rent)) : '7500',
+    deposit: initialData?.deposit !== undefined ? normalizeAmountInput(String(initialData.deposit)) : '15000',
     currentOccupants: initialData?.currentOccupants || 2,
     vacancies: initialData?.vacancies || 1,
     totalCapacity: initialData?.totalCapacity || 3,
@@ -48,7 +55,10 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
     setError('');
     setSuccess('');
 
-    if (formData.rent < 0 || formData.deposit < 0 || formData.currentOccupants < 0 || formData.vacancies < 0 || formData.totalCapacity < 1) {
+    const parsedRent = formData.rent === '' ? 0 : parseInt(formData.rent, 10);
+    const parsedDeposit = formData.deposit === '' ? 0 : parseInt(formData.deposit, 10);
+
+    if (isNaN(parsedRent) || parsedRent < 0 || isNaN(parsedDeposit) || parsedDeposit < 0 || formData.currentOccupants < 0 || formData.vacancies < 0 || formData.totalCapacity < 1) {
       setError('Rent, deposit, occupants and vacancies cannot be negative, and capacity must be at least 1');
       setLoading(false);
       return;
@@ -61,7 +71,11 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          rent: parsedRent,
+          deposit: parsedDeposit,
+        }),
       });
 
       const data = await res.json();
@@ -214,11 +228,13 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
           <div className="relative">
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               required
-              min="0"
               value={formData.rent}
-              onChange={(e) => handleChange('rent', parseInt(e.target.value, 10) || 0)}
+              onChange={(e) => handleChange('rent', normalizeAmountInput(e.target.value))}
+              placeholder="e.g. 7500"
               className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 pl-8 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
             />
           </div>
@@ -231,10 +247,12 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
           <div className="relative">
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
             <input
-              type="number"
-              min="0"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={formData.deposit}
-              onChange={(e) => handleChange('deposit', parseInt(e.target.value, 10) || 0)}
+              onChange={(e) => handleChange('deposit', normalizeAmountInput(e.target.value))}
+              placeholder="e.g. 15000"
               className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 pl-8 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
             />
           </div>

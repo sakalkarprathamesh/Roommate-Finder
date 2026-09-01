@@ -44,13 +44,19 @@ export default function PGListingForm({ initialData, isEdit = false }: PGListing
   const [pgType, setPgType] = useState(initialData?.pgType || 'Both');
   const [address, setAddress] = useState(initialData?.address || '');
   const [location, setLocation] = useState(initialData?.location || PUNE_AREAS[0]);
+  const normalizeAmountInput = (val: string): string => {
+    if (val === '') return '';
+    const clean = val.replace(/[^\d]/g, '');
+    if (clean === '') return '';
+    return clean.replace(/^0+(?=\d)/, '');
+  };
 
   // Occupancy & Pricing
-  const [singleRent, setSingleRent] = useState(initialData?.singleRent?.toString() || '');
-  const [doubleRent, setDoubleRent] = useState(initialData?.doubleRent?.toString() || '');
-  const [tripleRent, setTripleRent] = useState(initialData?.tripleRent?.toString() || '');
-  const [deposit, setDeposit] = useState(initialData?.deposit?.toString() || '');
-  const [maintenanceCharges, setMaintenanceCharges] = useState(initialData?.maintenanceCharges?.toString() || '');
+  const [singleRent, setSingleRent] = useState(initialData?.singleRent !== undefined ? normalizeAmountInput(String(initialData.singleRent)) : '');
+  const [doubleRent, setDoubleRent] = useState(initialData?.doubleRent !== undefined ? normalizeAmountInput(String(initialData.doubleRent)) : '');
+  const [tripleRent, setTripleRent] = useState(initialData?.tripleRent !== undefined ? normalizeAmountInput(String(initialData.tripleRent)) : '');
+  const [deposit, setDeposit] = useState(initialData?.deposit !== undefined ? normalizeAmountInput(String(initialData.deposit)) : '');
+  const [maintenanceCharges, setMaintenanceCharges] = useState(initialData?.maintenanceCharges !== undefined ? normalizeAmountInput(String(initialData.maintenanceCharges)) : '');
   const [noticePeriod, setNoticePeriod] = useState(initialData?.noticePeriod || '1 Month');
 
   // Amenities & Photos
@@ -400,10 +406,12 @@ export default function PGListingForm({ initialData, isEdit = false }: PGListing
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="e.g. 10000"
                 value={singleRent}
-                onChange={(e) => setSingleRent(e.target.value)}
+                onChange={(e) => setSingleRent(normalizeAmountInput(e.target.value))}
                 className="w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
             </div>
@@ -416,10 +424,12 @@ export default function PGListingForm({ initialData, isEdit = false }: PGListing
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="e.g. 6500"
                 value={doubleRent}
-                onChange={(e) => setDoubleRent(e.target.value)}
+                onChange={(e) => setDoubleRent(normalizeAmountInput(e.target.value))}
                 className="w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
             </div>
@@ -432,10 +442,12 @@ export default function PGListingForm({ initialData, isEdit = false }: PGListing
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="e.g. 5000"
                 value={tripleRent}
-                onChange={(e) => setTripleRent(e.target.value)}
+                onChange={(e) => setTripleRent(normalizeAmountInput(e.target.value))}
                 className="w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
             </div>
@@ -450,10 +462,12 @@ export default function PGListingForm({ initialData, isEdit = false }: PGListing
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="Optional (e.g. 5000)"
                 value={deposit}
-                onChange={(e) => setDeposit(e.target.value)}
+                onChange={(e) => setDeposit(normalizeAmountInput(e.target.value))}
                 className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
               />
             </div>
@@ -464,10 +478,12 @@ export default function PGListingForm({ initialData, isEdit = false }: PGListing
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="Optional (e.g. 500)"
                 value={maintenanceCharges}
-                onChange={(e) => setMaintenanceCharges(e.target.value)}
+                onChange={(e) => setMaintenanceCharges(normalizeAmountInput(e.target.value))}
                 className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
               />
             </div>
