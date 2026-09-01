@@ -6,6 +6,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    id: 'modern-homepage-ui',
+    title: 'Modern & minimal homepage redesign',
+    description:
+      'Added an interactive Hero quick-search widget, campus area filter pills, refreshed 4-step guide cards, and refined student trust badges.',
+  },
+  {
     id: 'seo-and-sitemap',
     title: 'Search optimization & verified sitemap',
     description:
