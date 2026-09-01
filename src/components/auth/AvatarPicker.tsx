@@ -127,7 +127,7 @@ export default function AvatarPicker({
             }`}
           >
             <User className="w-3.5 h-3.5" />
-            <span>Illustrated Avatars</span>
+            <span>Avatars</span>
           </button>
 
           <button
