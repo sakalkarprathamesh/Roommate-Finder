@@ -140,6 +140,11 @@ export default function RegisterWizard() {
   };
 
   const handleFinalSubmit = async () => {
+    if (role === 'SEEKER' && selectedPreferences.length < 5) {
+      setError('Please select at least 5 preferences to continue.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -824,14 +829,22 @@ export default function RegisterWizard() {
               Lifestyle & Roommate Preferences
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-[#BDC1C6]">
-              Select tags that describe your ideal flatmate habits. You can edit these anytime.
+              Select at least 5 tags that describe your ideal flatmate habits. You can edit these anytime.
             </p>
           </div>
 
           <div className="bg-white dark:bg-[#303134] rounded-3xl border border-slate-200 dark:border-[#3C4043] p-6 sm:p-8 shadow-sm space-y-4">
             <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-[#E8EAED]">
               <span>Popular Flatmate Tags</span>
-              <span className="text-blue-600 dark:text-[#8AB4F8]">{selectedPreferences.length} selected</span>
+              <span
+                className={`px-2.5 py-0.5 rounded-full font-bold text-xs ${
+                  selectedPreferences.length >= 5
+                    ? 'bg-emerald-50 dark:bg-[#133E26] text-emerald-700 dark:text-[#81C995]'
+                    : 'bg-blue-50 dark:bg-[#1E3A5F] text-blue-600 dark:text-[#8AB4F8]'
+                }`}
+              >
+                {selectedPreferences.length} of 5+ selected
+              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -841,11 +854,14 @@ export default function RegisterWizard() {
                   <button
                     key={pref.id}
                     type="button"
-                    onClick={() => togglePreference(pref.id)}
+                    onClick={() => {
+                      setError('');
+                      togglePreference(pref.id);
+                    }}
                     className={`p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between cursor-pointer ${
                       isSelected
                         ? 'border-blue-600 bg-blue-50/70 dark:bg-[#1E3A5F] shadow-2xs'
-                        : 'border-slate-200 dark:border-[#3C4043] bg-slate-50 dark:bg-[#202124] hover:bg-white'
+                        : 'border-slate-200 dark:border-[#3C4043] bg-slate-50 dark:bg-[#202124] hover:bg-white dark:hover:bg-[#303134]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -868,13 +884,29 @@ export default function RegisterWizard() {
                 );
               })}
             </div>
+
+            {/* Helper message indicating selection status */}
+            {selectedPreferences.length < 5 ? (
+              <p className="text-xs text-amber-600 dark:text-[#FDD663] font-semibold text-center pt-2">
+                Select {5 - selectedPreferences.length} more preference{5 - selectedPreferences.length === 1 ? '' : 's'} to continue.
+              </p>
+            ) : (
+              <p className="text-xs text-emerald-600 dark:text-[#81C995] font-semibold text-center pt-2 flex items-center justify-center gap-1.5">
+                <Check className="w-4 h-4 stroke-[3]" />
+                <span>You&apos;ve selected {selectedPreferences.length} preferences. Ready to continue!</span>
+              </p>
+            )}
           </div>
 
           <button
             type="button"
             onClick={handleFinalSubmit}
-            disabled={loading}
-            className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-2xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            disabled={selectedPreferences.length < 5 || loading}
+            className={`w-full py-3.5 font-bold text-xs rounded-2xl shadow-xs transition-all flex items-center justify-center gap-2 ${
+              selectedPreferences.length >= 5 && !loading
+                ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+                : 'bg-slate-200 dark:bg-[#3C4043] text-slate-400 dark:text-[#BDC1C6] cursor-not-allowed opacity-60'
+            }`}
           >
             {loading ? (
               <>
