@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Filter,
   PlusCircle,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import ListingCard from '@/components/listings/ListingCard';
@@ -380,20 +381,38 @@ function FindContent() {
           </div>
 
           {loading ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 text-xs">
-              Loading listings...
+            <div className="bg-white dark:bg-[#303134] rounded-3xl border border-[#DADCE0] dark:border-[#3C4043] p-12 text-center text-[#5F6368] dark:text-[#BDC1C6] text-xs font-semibold">
+              Loading accommodations...
             </div>
           ) : listings.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
-              <Building className="w-10 h-10 text-slate-300 mx-auto" />
-              <h3 className="text-base font-bold text-slate-900">No listings found.</h3>
-              <p className="text-xs text-slate-500">Try changing your filters or search keywords.</p>
-              <button
-                onClick={handleReset}
-                className="px-4 py-2 bg-brand-900 text-white font-bold text-xs rounded-xl shadow-xs hover:bg-brand-800"
-              >
-                Clear All Filters
-              </button>
+            <div className="bg-white dark:bg-[#303134] rounded-3xl border border-[#DADCE0] dark:border-[#3C4043] p-10 sm:p-14 text-center space-y-4 shadow-2xs">
+              <div className="w-12 h-12 rounded-2xl bg-[#E8F0FE] dark:bg-[#1E3A5F] text-[#1A73E8] dark:text-[#8AB4F8] flex items-center justify-center mx-auto">
+                <Building className="w-6 h-6" />
+              </div>
+              <div className="space-y-1 max-w-md mx-auto">
+                <h3 className="text-base sm:text-lg font-black text-[#202124] dark:text-[#E8EAED]">
+                  No real listings published yet
+                </h3>
+                <p className="text-xs text-[#5F6368] dark:text-[#BDC1C6] leading-relaxed">
+                  Be the first student or accommodation owner to publish a vacancy, or explore sample listings in the Demo view.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
+                <Link
+                  href="/listings/new"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-[#1A73E8] hover:bg-[#1557B0] text-white font-bold text-xs rounded-2xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Post Listing</span>
+                </Link>
+                <Link
+                  href="/demo"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-[#F8F9FA] dark:bg-[#202124] hover:bg-slate-100 dark:hover:bg-[#3C4043] border border-[#DADCE0] dark:border-[#3C4043] text-[#202124] dark:text-[#E8EAED] font-bold text-xs rounded-2xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-[#FBBC04]" />
+                  <span>Explore Demo Listings</span>
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
