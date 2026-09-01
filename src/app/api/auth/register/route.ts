@@ -5,16 +5,16 @@ import { hashPassword, signToken, isValidEmail, TOKEN_COOKIE_NAME } from '@/lib/
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    const fullName = (body.fullName || body.name || '').trim();
+    const email = (body.email || '').toLowerCase().trim();
+    const phone = (body.phone || '').trim();
+    const password = body.password;
+    const confirmPassword = body.confirmPassword || body.password;
     const {
-      fullName,
-      email,
-      phone,
       school,
       department,
       year,
       division,
-      password,
-      confirmPassword,
       bio,
       profilePhotoUrl,
       avatarId,

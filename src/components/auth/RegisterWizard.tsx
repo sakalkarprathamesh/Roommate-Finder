@@ -153,10 +153,12 @@ export default function RegisterWizard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          fullName: fullName.trim(),
+          name: fullName.trim(),
           email: email.trim().toLowerCase(),
           phone: phone.trim(),
           password,
-          name: fullName.trim(),
+          confirmPassword: confirmPassword || password,
           school,
           department,
           year,
@@ -264,7 +266,7 @@ export default function RegisterWizard() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6">
+    <div className={`mx-auto py-8 px-4 sm:px-6 transition-all duration-300 ${step === 6 ? 'max-w-5xl' : 'max-w-2xl'}`}>
       {/* Progress & Back navigation */}
       <div className="flex items-center justify-between mb-8">
         {step > 1 ? (
@@ -849,7 +851,7 @@ export default function RegisterWizard() {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 pt-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-3 pt-1">
               {FLATMATE_PREFERENCES.map((pref) => {
                 const isSelected = selectedPreferences.includes(pref.id);
                 return (
@@ -860,25 +862,25 @@ export default function RegisterWizard() {
                       setError('');
                       togglePreference(pref.id);
                     }}
-                    className={`p-3.5 sm:p-4 rounded-3xl border-2 transition-all flex flex-col items-center justify-between gap-2.5 text-center cursor-pointer relative group ${
+                    className={`p-2.5 sm:p-3 rounded-2xl border-2 transition-all flex flex-col items-center justify-between gap-1.5 text-center cursor-pointer relative group ${
                       isSelected
-                        ? 'border-blue-600 bg-blue-50/70 dark:bg-[#1E3A5F] ring-2 ring-blue-600/20 shadow-xs'
+                        ? 'border-blue-600 bg-blue-50/70 dark:bg-[#1E3A5F] ring-2 ring-blue-600/20 shadow-2xs'
                         : 'border-slate-200 dark:border-[#3C4043] bg-slate-50 dark:bg-[#202124] hover:bg-white dark:hover:bg-[#303134] hover:border-slate-300'
                     }`}
                   >
                     {/* Checkmark badge at top right */}
                     <div
-                      className={`absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-xs transition-colors ${
+                      className={`absolute top-1.5 right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-[10px] transition-colors ${
                         isSelected
                           ? 'bg-blue-600 text-white'
                           : 'border border-slate-300 dark:border-[#5F6368] bg-white dark:bg-[#202124]'
                       }`}
                     >
-                      {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                      {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                     </div>
 
                     {/* 3D Illustrated Sticker Icon */}
-                    <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform">
+                    <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-full overflow-hidden flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform flex-shrink-0">
                       {pref.iconUrl ? (
                         <img
                           src={pref.iconUrl}
@@ -886,14 +888,14 @@ export default function RegisterWizard() {
                           className="w-full h-full object-contain rounded-full"
                         />
                       ) : (
-                        <span className="text-3xl">{(pref as any).emoji || '✨'}</span>
+                        <span className="text-2xl">{(pref as any).emoji || '✨'}</span>
                       )}
                     </div>
 
                     {/* Title */}
-                    <div>
+                    <div className="w-full min-w-0">
                       <div
-                        className={`text-xs sm:text-sm font-black ${
+                        className={`text-xs font-black truncate ${
                           isSelected
                             ? 'text-blue-900 dark:text-[#8AB4F8]'
                             : 'text-slate-800 dark:text-white'
@@ -901,7 +903,7 @@ export default function RegisterWizard() {
                       >
                         {pref.title}
                       </div>
-                      <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-[#BDC1C6] line-clamp-1 mt-0.5">
+                      <div className="text-[10px] text-slate-500 dark:text-[#BDC1C6] truncate leading-tight mt-0.5">
                         {pref.description}
                       </div>
                     </div>
