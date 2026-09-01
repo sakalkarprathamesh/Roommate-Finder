@@ -6,10 +6,10 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
-    id: 'google-dark-theme-v1-1',
-    title: 'Google Dark Theme Suite',
+    id: 'dark-theme-suite-v1-1',
+    title: 'Modern Dark Mode Suite',
     description:
-      'Immersive dark mode featuring Google charcoal aesthetics (#202124 / #303134) with high-contrast text and luminous accent highlights.',
+      'Immersive dark mode featuring refined charcoal aesthetics with high-contrast text and luminous accent highlights.',
   },
   {
     id: 'custom-student-avatars-v1-1',

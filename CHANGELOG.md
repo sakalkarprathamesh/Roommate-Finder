@@ -2,10 +2,10 @@
 
 ## [v1.1.0] — The Atmosphere & Identity Update (2026-09-02)
 
-### 🎨 Google Dark Theme Suite
-- Fully integrated Google Dark Mode design tokens (`#202124` canvas, `#303134` elevated cards, `#8AB4F8` primary links, `#FFFFFF` high-contrast typography).
+### 🎨 Modern Dark Theme Suite
+- Fully integrated Dark Mode design tokens (`#202124` canvas, `#303134` elevated cards, `#8AB4F8` primary links, `#FFFFFF` high-contrast typography).
 - Resolved all dimmed font contrast issues across headers, modals, listings, and discovery cards.
-- Styled creator branding in vibrant Google Blue (`#1A73E8`) for Light Mode and Sky Blue (`#8AB4F8`) for Dark Mode.
+- Styled creator branding in vibrant Roomie Blue (`#1A73E8`) for Light Mode and Sky Blue (`#8AB4F8`) for Dark Mode.
 
 ### 🧑‍🎨 Custom Illustrated Student Avatars
 - Extracted and alpha-masked 10 clean circular avatars (6 male, 4 female) stored in `/avatars/`.
