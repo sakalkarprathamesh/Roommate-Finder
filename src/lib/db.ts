@@ -33,16 +33,23 @@ function getSqliteDatabaseUrl(): string {
     // SQLite requires write access to the directory for rollback journals and locking.
     // /tmp is the only guaranteed writable directory on AWS Lambda & Vercel.
     const tmpDbPath = path.join('/tmp', 'dev.db');
+    const versionFile = path.join('/tmp', 'db_version.txt');
+    const deployVersion = '2026-09-02-v4-isolated-demo';
+
     try {
       if (sourceDbPath) {
-        if (!fs.existsSync(tmpDbPath)) {
+        let currentVersion = '';
+        if (fs.existsSync(versionFile)) {
+          try {
+            currentVersion = fs.readFileSync(versionFile, 'utf8').trim();
+          } catch {}
+        }
+
+        if (!fs.existsSync(tmpDbPath) || currentVersion !== deployVersion) {
           fs.copyFileSync(sourceDbPath, tmpDbPath);
-        } else {
-          const srcStat = fs.statSync(sourceDbPath);
-          const tmpStat = fs.statSync(tmpDbPath);
-          if (srcStat.size !== tmpStat.size || srcStat.mtimeMs > tmpStat.mtimeMs) {
-            fs.copyFileSync(sourceDbPath, tmpDbPath);
-          }
+          try {
+            fs.writeFileSync(versionFile, deployVersion, 'utf8');
+          } catch {}
         }
       }
       if (fs.existsSync(tmpDbPath)) {
