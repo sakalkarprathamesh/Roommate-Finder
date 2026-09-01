@@ -122,57 +122,38 @@ export default function ListingForm({ initialData, isEdit = false }: ListingForm
         </div>
       )}
 
-      {/* 1. Primary Listing Type */}
-      <div className="space-y-2">
-        <label className="block text-xs font-bold text-[#202124]">
-          What type of listing are you creating? *
-        </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {Object.entries(LISTING_TYPES).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => handleChange('listingType', key)}
-              className={`p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between cursor-pointer ${
-                formData.listingType === key
-                  ? 'border-[#1A73E8] bg-[#E8F0FE] shadow-2xs'
-                  : 'border-[#DADCE0] bg-[#F8F9FA] hover:bg-white'
-              }`}
-            >
-              <div>
-                <div className="font-bold text-xs text-[#202124]">{label}</div>
-                <div className="text-[11px] text-[#5F6368]">
-                  {key === 'HAVE_VACANCY' && 'I have a vacant bed/room in my PG or Flat'}
-                  {key === 'NEED_ROOMMATE' && 'I am looking for a roommate to search together'}
-                  {key === 'NEED_ACCOMMODATION' && 'I am looking for an existing vacant room/PG'}
-                  {key === 'HAVE_ROOM' && 'I am an owner/student offering a full room'}
-                </div>
-              </div>
-              <div
-                className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                  formData.listingType === key ? 'border-[#1A73E8] bg-[#1A73E8]' : 'border-slate-300'
-                }`}
-              >
-                {formData.listingType === key && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-              </div>
-            </button>
-          ))}
+      {/* 1. Basic Info: Title & Listing Type */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-[#202124]">
+            Listing Title *
+          </label>
+          <input
+            type="text"
+            required
+            value={formData.title}
+            onChange={(e) => handleChange('title', e.target.value)}
+            placeholder="e.g. 1 Vacancy in 2BHK Flat near Gate 2, MIT-ADT"
+            className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
+          />
         </div>
-      </div>
 
-      {/* 2. Listing Title */}
-      <div className="space-y-1">
-        <label className="block text-xs font-bold text-[#202124]">
-          Listing Title *
-        </label>
-        <input
-          type="text"
-          required
-          value={formData.title}
-          onChange={(e) => handleChange('title', e.target.value)}
-          placeholder="e.g. 1 Vacancy in 2BHK Flat near Gate 2, MIT-ADT"
-          className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
-        />
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-[#202124]">
+            Listing Type *
+          </label>
+          <select
+            value={formData.listingType}
+            onChange={(e) => handleChange('listingType', e.target.value)}
+            className="w-full text-xs bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-[#202124] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold cursor-pointer"
+          >
+            {Object.entries(LISTING_TYPES).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* 3. Core Property Specifications */}

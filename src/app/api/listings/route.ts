@@ -160,15 +160,27 @@ export async function POST(req: Request) {
       isDemo,
     } = body;
 
-    if (!title || !location || !rent || !description) {
-      return NextResponse.json({ error: 'Please fill in all required fields' }, { status: 400 });
+    const parseSafeInt = (val: any, fallback: number = 0): number => {
+      if (val === undefined || val === null || val === '') return fallback;
+      const num = typeof val === 'number' ? val : parseInt(String(val).replace(/[^\d-]/g, ''), 10);
+      return isNaN(num) ? fallback : num;
+    };
+
+    const parseSafeOptionalInt = (val: any): number | null => {
+      if (val === undefined || val === null || val === '') return null;
+      const num = typeof val === 'number' ? val : parseInt(String(val).replace(/[^\d-]/g, ''), 10);
+      return isNaN(num) ? null : num;
+    };
+
+    if (!title?.trim() || !location?.trim() || rent === undefined || rent === null || rent === '' || !description?.trim()) {
+      return NextResponse.json({ error: 'Please fill in all required fields (Title, Location, Rent, and Description)' }, { status: 400 });
     }
 
-    const rentNum = parseInt(rent, 10);
-    const depositNum = parseInt(deposit || '0', 10);
-    const occupantsNum = parseInt(currentOccupants || '0', 10);
-    const vacanciesNum = parseInt(vacancies || '1', 10);
-    const capacityNum = parseInt(totalCapacity || '1', 10);
+    const rentNum = parseSafeInt(rent, 0);
+    const depositNum = parseSafeInt(deposit, 0);
+    const occupantsNum = parseSafeInt(currentOccupants, 0);
+    const vacanciesNum = Math.max(1, parseSafeInt(vacancies, 1));
+    const capacityNum = Math.max(1, parseSafeInt(totalCapacity, occupantsNum + vacanciesNum));
 
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 60); // 60 days
     const isListingDemo = Boolean(isDemo) || Boolean((user as any).isDemo);
@@ -187,14 +199,14 @@ export async function POST(req: Request) {
         address: address?.trim() || null,
         rent: rentNum,
         deposit: depositNum,
-        singleRent: singleRent ? parseInt(singleRent, 10) : null,
-        doubleRent: doubleRent ? parseInt(doubleRent, 10) : null,
-        tripleRent: tripleRent ? parseInt(tripleRent, 10) : null,
-        maintenanceCharges: maintenanceCharges ? parseInt(maintenanceCharges, 10) : 0,
+        singleRent: parseSafeOptionalInt(singleRent),
+        doubleRent: parseSafeOptionalInt(doubleRent),
+        tripleRent: parseSafeOptionalInt(tripleRent),
+        maintenanceCharges: parseSafeInt(maintenanceCharges, 0),
         noticePeriod: noticePeriod || null,
         pgType: pgType || null,
-        bedrooms: bedrooms ? parseInt(bedrooms, 10) : null,
-        bathrooms: bathrooms ? parseInt(bathrooms, 10) : null,
+        bedrooms: parseSafeOptionalInt(bedrooms),
+        bathrooms: parseSafeOptionalInt(bathrooms),
         furnishing: furnishing || null,
         preferredTenant: preferredTenant || null,
         availableFrom: availableFrom || null,

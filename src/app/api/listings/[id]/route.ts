@@ -105,6 +105,18 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       status,
     } = body;
 
+    const parseSafeInt = (val: any, fallback: number = 0): number => {
+      if (val === undefined || val === null || val === '') return fallback;
+      const num = typeof val === 'number' ? val : parseInt(String(val).replace(/[^\d-]/g, ''), 10);
+      return isNaN(num) ? fallback : num;
+    };
+
+    const parseSafeOptionalInt = (val: any): number | null => {
+      if (val === undefined || val === null || val === '') return null;
+      const num = typeof val === 'number' ? val : parseInt(String(val).replace(/[^\d-]/g, ''), 10);
+      return isNaN(num) ? null : num;
+    };
+
     const updated = await prisma.listing.update({
       where: { id: listingId },
       data: {
@@ -114,24 +126,24 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         ...(roomType ? { roomType } : {}),
         ...(location ? { location } : {}),
         ...(address !== undefined ? { address: address?.trim() || null } : {}),
-        ...(rent !== undefined ? { rent: parseInt(rent, 10) } : {}),
-        ...(deposit !== undefined ? { deposit: parseInt(deposit, 10) } : {}),
-        ...(singleRent !== undefined ? { singleRent: singleRent ? parseInt(singleRent, 10) : null } : {}),
-        ...(doubleRent !== undefined ? { doubleRent: doubleRent ? parseInt(doubleRent, 10) : null } : {}),
-        ...(tripleRent !== undefined ? { tripleRent: tripleRent ? parseInt(tripleRent, 10) : null } : {}),
-        ...(maintenanceCharges !== undefined ? { maintenanceCharges: parseInt(maintenanceCharges, 10) } : {}),
+        ...(rent !== undefined ? { rent: parseSafeInt(rent, 0) } : {}),
+        ...(deposit !== undefined ? { deposit: parseSafeInt(deposit, 0) } : {}),
+        ...(singleRent !== undefined ? { singleRent: parseSafeOptionalInt(singleRent) } : {}),
+        ...(doubleRent !== undefined ? { doubleRent: parseSafeOptionalInt(doubleRent) } : {}),
+        ...(tripleRent !== undefined ? { tripleRent: parseSafeOptionalInt(tripleRent) } : {}),
+        ...(maintenanceCharges !== undefined ? { maintenanceCharges: parseSafeInt(maintenanceCharges, 0) } : {}),
         ...(noticePeriod !== undefined ? { noticePeriod } : {}),
         ...(pgType !== undefined ? { pgType } : {}),
-        ...(bedrooms !== undefined ? { bedrooms: parseInt(bedrooms, 10) } : {}),
-        ...(bathrooms !== undefined ? { bathrooms: parseInt(bathrooms, 10) } : {}),
+        ...(bedrooms !== undefined ? { bedrooms: parseSafeOptionalInt(bedrooms) } : {}),
+        ...(bathrooms !== undefined ? { bathrooms: parseSafeOptionalInt(bathrooms) } : {}),
         ...(furnishing !== undefined ? { furnishing } : {}),
         ...(preferredTenant !== undefined ? { preferredTenant } : {}),
         ...(availableFrom !== undefined ? { availableFrom } : {}),
         ...(amenities !== undefined ? { amenities } : {}),
         ...(photos !== undefined ? { photos } : {}),
-        ...(currentOccupants !== undefined ? { currentOccupants: parseInt(currentOccupants, 10) } : {}),
-        ...(vacancies !== undefined ? { vacancies: parseInt(vacancies, 10) } : {}),
-        ...(totalCapacity !== undefined ? { totalCapacity: parseInt(totalCapacity, 10) } : {}),
+        ...(currentOccupants !== undefined ? { currentOccupants: parseSafeInt(currentOccupants, 0) } : {}),
+        ...(vacancies !== undefined ? { vacancies: Math.max(0, parseSafeInt(vacancies, 1)) } : {}),
+        ...(totalCapacity !== undefined ? { totalCapacity: Math.max(1, parseSafeInt(totalCapacity, 1)) } : {}),
         ...(moveInDate ? { moveInDate: moveInDate.trim() } : {}),
         ...(description ? { description: description.trim() } : {}),
         ...(status ? { status } : {}),
