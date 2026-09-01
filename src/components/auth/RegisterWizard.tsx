@@ -608,30 +608,32 @@ export default function RegisterWizard() {
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {/* Option 1: Seeker */}
             <button
               type="button"
               onClick={() => setRole('SEEKER')}
-              className={`p-6 rounded-3xl border-2 transition-all flex items-start gap-4 text-left cursor-pointer group ${
+              className={`w-full p-6 rounded-3xl border-2 transition-all flex items-center gap-4 text-left cursor-pointer group ${
                 role === 'SEEKER'
                   ? 'border-blue-600 bg-blue-50/70 dark:bg-[#1E3A5F] shadow-md ring-2 ring-blue-600/20'
-                  : 'border-slate-200 dark:border-[#3C4043] bg-white dark:bg-[#303134] hover:border-slate-300 hover:bg-slate-50'
+                  : 'border-slate-200 dark:border-[#3C4043] bg-white dark:bg-[#303134] hover:border-slate-300 dark:hover:border-[#5F6368] hover:bg-slate-50 dark:hover:bg-[#3C4043]'
               }`}
             >
               <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-[#1E3A5F] text-2xl flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                 🎓
               </div>
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center justify-between gap-2">
                   <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
                     I&apos;m a Student looking for Flat / PG
                   </h2>
-                  {role === 'SEEKER' && (
-                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center animate-in zoom-in-75">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    </div>
-                  )}
+                  <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+                    {role === 'SEEKER' && (
+                      <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center animate-in zoom-in-75">
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-[#BDC1C6] leading-relaxed">
                   Find compatible flatmates, explore verified PGs, single rooms, and shared apartments near college.
@@ -643,25 +645,27 @@ export default function RegisterWizard() {
             <button
               type="button"
               onClick={() => setRole('PG_OWNER')}
-              className={`p-6 rounded-3xl border-2 transition-all flex items-start gap-4 text-left cursor-pointer group ${
+              className={`w-full p-6 rounded-3xl border-2 transition-all flex items-center gap-4 text-left cursor-pointer group ${
                 role === 'PG_OWNER'
                   ? 'border-blue-600 bg-blue-50/70 dark:bg-[#1E3A5F] shadow-md ring-2 ring-blue-600/20'
-                  : 'border-slate-200 dark:border-[#3C4043] bg-white dark:bg-[#303134] hover:border-slate-300 hover:bg-slate-50'
+                  : 'border-slate-200 dark:border-[#3C4043] bg-white dark:bg-[#303134] hover:border-slate-300 dark:hover:border-[#5F6368] hover:bg-slate-50 dark:hover:bg-[#3C4043]'
               }`}
             >
-              <div className="w-14 h-14 rounded-2xl bg-amber-100 text-2xl flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+              <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-[#3B3116] text-2xl flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                 🏢
               </div>
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center justify-between gap-2">
                   <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
                     I&apos;m a PG Owner
                   </h2>
-                  {role === 'PG_OWNER' && (
-                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center animate-in zoom-in-75">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    </div>
-                  )}
+                  <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+                    {role === 'PG_OWNER' && (
+                      <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center animate-in zoom-in-75">
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-[#BDC1C6] leading-relaxed">
                   List your paying guest accommodation and connect with verified student tenants.
@@ -673,25 +677,27 @@ export default function RegisterWizard() {
             <button
               type="button"
               onClick={() => setRole('FLAT_OWNER')}
-              className={`p-6 rounded-3xl border-2 transition-all flex items-start gap-4 text-left cursor-pointer group ${
+              className={`w-full p-6 rounded-3xl border-2 transition-all flex items-center gap-4 text-left cursor-pointer group ${
                 role === 'FLAT_OWNER'
                   ? 'border-blue-600 bg-blue-50/70 dark:bg-[#1E3A5F] shadow-md ring-2 ring-blue-600/20'
-                  : 'border-slate-200 dark:border-[#3C4043] bg-white dark:bg-[#303134] hover:border-slate-300 hover:bg-slate-50'
+                  : 'border-slate-200 dark:border-[#3C4043] bg-white dark:bg-[#303134] hover:border-slate-300 dark:hover:border-[#5F6368] hover:bg-slate-50 dark:hover:bg-[#3C4043]'
               }`}
             >
-              <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-2xl flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-[#133E26] text-2xl flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                 🏡
               </div>
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center justify-between gap-2">
                   <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
                     I&apos;m a Flat Owner
                   </h2>
-                  {role === 'FLAT_OWNER' && (
-                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center animate-in zoom-in-75">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    </div>
-                  )}
+                  <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+                    {role === 'FLAT_OWNER' && (
+                      <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center animate-in zoom-in-75">
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-[#BDC1C6] leading-relaxed">
                   List your residential flat and find reliable student tenants or flatmates.
