@@ -6,10 +6,40 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
-    id: 'seo-and-sitemap',
-    title: 'Search optimization & verified sitemap',
+    id: 'google-dark-theme-v1-1',
+    title: 'Google Dark Theme Suite',
     description:
-      'Added public robots.txt and sitemap.xml indexing rules, descriptive page titles, and private account protection against search engine indexing.',
+      'Immersive dark mode featuring Google charcoal aesthetics (#202124 / #303134) with high-contrast text and luminous accent highlights.',
+  },
+  {
+    id: 'custom-student-avatars-v1-1',
+    title: 'Illustrated Student Avatars & Smart Suggestions',
+    description:
+      'New collection of 10 clean illustrated avatars with smart gender-based suggestions during registration and profile editing.',
+  },
+  {
+    id: 'minimal-profile-bar-v1-1',
+    title: 'Clean Minimal Navigation Bar',
+    description:
+      'The top-right navbar now features a clean circular profile avatar that expands into a rich account menu card on click.',
+  },
+  {
+    id: 'single-line-hero-v1-1',
+    title: 'High-Impact Hero Tagline',
+    description:
+      'Updated the Roomie hero tagline into a continuous, bold horizontal statement with vibrant Roomie blue highlights.',
+  },
+  {
+    id: 'standalone-saved-listings-v1-1',
+    title: 'Dedicated Saved Listings View',
+    description:
+      'Access your bookmarked accommodations directly via /saved with a streamlined empty state when no listings are saved.',
+  },
+  {
+    id: 'account-deletion-v1-1',
+    title: 'Account Deletion & Privacy Safeguards',
+    description:
+      'Users can now safely and permanently delete their Roomie account and all associated listings from Settings at any time.',
   },
   {
     id: 'welcome-and-guidance',
