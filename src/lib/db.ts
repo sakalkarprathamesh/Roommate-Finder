@@ -34,8 +34,16 @@ function getSqliteDatabaseUrl(): string {
     // /tmp is the only guaranteed writable directory on AWS Lambda & Vercel.
     const tmpDbPath = path.join('/tmp', 'dev.db');
     try {
-      if (!fs.existsSync(tmpDbPath) && sourceDbPath) {
-        fs.copyFileSync(sourceDbPath, tmpDbPath);
+      if (sourceDbPath) {
+        if (!fs.existsSync(tmpDbPath)) {
+          fs.copyFileSync(sourceDbPath, tmpDbPath);
+        } else {
+          const srcStat = fs.statSync(sourceDbPath);
+          const tmpStat = fs.statSync(tmpDbPath);
+          if (srcStat.size !== tmpStat.size || srcStat.mtimeMs > tmpStat.mtimeMs) {
+            fs.copyFileSync(sourceDbPath, tmpDbPath);
+          }
+        }
       }
       if (fs.existsSync(tmpDbPath)) {
         return `file:${tmpDbPath}`;
