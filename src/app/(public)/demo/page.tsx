@@ -11,6 +11,7 @@ import {
   ArrowRight,
   PlusCircle,
   ExternalLink,
+  Sparkles,
 } from 'lucide-react';
 import ListingCard from '@/components/listings/ListingCard';
 import {
@@ -44,7 +45,6 @@ export default function DemoListingsPage() {
     try {
       const params = new URLSearchParams();
       params.set('demoOnly', 'true');
-      params.set('status', 'ACTIVE');
       if (q) params.set('q', q);
       if (listingType) params.set('listingType', listingType);
       if (accommodationType) params.set('accommodationType', accommodationType);
@@ -85,51 +85,51 @@ export default function DemoListingsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Demo Section Header */}
-      <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl space-y-3">
+      <div className="bg-[#202124] dark:bg-[#303134] text-white rounded-3xl p-6 sm:p-8 border border-transparent dark:border-[#3C4043] shadow-xl space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold uppercase tracking-wider">
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-              Private Demo & Test Section
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#FBBC04]/20 border border-[#FBBC04]/30 text-[#FDD663] text-xs font-bold uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-[#FBBC04]" />
+              Example Demo Content
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black">
-              Demo Accommodation Listings
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+              Sample Accommodation Listings
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
-              These sample listings are isolated from the real user experience. You can browse, inspect, and test interactions here safely without mixing into live student searches.
+            <p className="text-xs sm:text-sm text-slate-300 dark:text-[#BDC1C6] max-w-2xl leading-relaxed">
+              These sample listings demonstrate how rooms, flats, and PGs appear on Roomie. They are completely isolated from live student searches and are non-interactive previews.
             </p>
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <Link
-              href="/internal-review"
-              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5"
+              href="/find"
+              className="px-5 py-2.5 bg-[#1A73E8] hover:bg-[#1557B0] dark:bg-[#8AB4F8] dark:hover:bg-[#AECBFA] text-white dark:text-[#202124] text-xs font-bold rounded-2xl transition-all shadow-xs flex items-center gap-1.5"
             >
-              <span>Manage Isolated Data</span>
-              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+              <span>Explore Real Listings</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
+      <div className="bg-white dark:bg-[#303134] rounded-3xl border border-[#DADCE0] dark:border-[#3C4043] p-5 shadow-2xs space-y-4">
         <form onSubmit={handleSearchSubmit} className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5F6368] dark:text-[#BDC1C6]" />
             <input
               type="text"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search demo listings by title, description, or student name..."
-              className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+              placeholder="Search sample listings by title, location, or amenities..."
+              className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#F8F9FA] dark:bg-[#202124] border border-[#DADCE0] dark:border-[#3C4043] rounded-2xl text-[#202124] dark:text-[#E8EAED] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A73E8] font-semibold"
             />
           </div>
           <button
             type="submit"
-            className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+            className="px-5 py-2.5 bg-[#1A73E8] hover:bg-[#1557B0] text-white font-bold text-xs rounded-2xl shadow-xs transition-colors cursor-pointer"
           >
-            Search Demo
+            Search
           </button>
         </form>
 
@@ -137,7 +137,7 @@ export default function DemoListingsPage() {
           <select
             value={listingType}
             onChange={(e) => setListingType(e.target.value)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:bg-white focus:outline-none"
+            className="text-xs bg-[#F8F9FA] dark:bg-[#202124] border border-[#DADCE0] dark:border-[#3C4043] rounded-2xl p-2.5 text-[#202124] dark:text-[#E8EAED] font-semibold focus:bg-white focus:outline-none cursor-pointer"
           >
             <option value="">All Listing Types</option>
             {Object.entries(LISTING_TYPES).map(([key, label]) => (
@@ -150,7 +150,7 @@ export default function DemoListingsPage() {
           <select
             value={accommodationType}
             onChange={(e) => setAccommodationType(e.target.value)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:bg-white focus:outline-none"
+            className="text-xs bg-[#F8F9FA] dark:bg-[#202124] border border-[#DADCE0] dark:border-[#3C4043] rounded-2xl p-2.5 text-[#202124] dark:text-[#E8EAED] font-semibold focus:bg-white focus:outline-none cursor-pointer"
           >
             <option value="">All Housing Types</option>
             {ACCOMMODATION_TYPES.map((t) => (
@@ -163,7 +163,7 @@ export default function DemoListingsPage() {
           <select
             value={roomType}
             onChange={(e) => setRoomType(e.target.value)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:bg-white focus:outline-none"
+            className="text-xs bg-[#F8F9FA] dark:bg-[#202124] border border-[#DADCE0] dark:border-[#3C4043] rounded-2xl p-2.5 text-[#202124] dark:text-[#E8EAED] font-semibold focus:bg-white focus:outline-none cursor-pointer"
           >
             <option value="">All Room Types</option>
             {ROOM_TYPES.map((r) => (
@@ -176,7 +176,7 @@ export default function DemoListingsPage() {
           <select
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:bg-white focus:outline-none"
+            className="text-xs bg-[#F8F9FA] dark:bg-[#202124] border border-[#DADCE0] dark:border-[#3C4043] rounded-2xl p-2.5 text-[#202124] dark:text-[#E8EAED] font-semibold focus:bg-white focus:outline-none cursor-pointer"
           >
             <option value="">All Locations</option>
             {PUNE_AREAS.map((a) => (
@@ -187,11 +187,12 @@ export default function DemoListingsPage() {
           </select>
 
           <button
+            type="button"
             onClick={handleReset}
-            className="px-3 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl flex items-center justify-center gap-1 transition-colors"
+            className="px-3 py-2 text-xs font-bold text-[#5F6368] dark:text-[#BDC1C6] bg-[#F8F9FA] dark:bg-[#202124] hover:bg-slate-100 dark:hover:bg-[#3C4043] border border-[#DADCE0] dark:border-[#3C4043] rounded-2xl flex items-center justify-center gap-1 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            Reset Filters
+            <span>Reset Filters</span>
           </button>
         </div>
       </div>
@@ -199,27 +200,27 @@ export default function DemoListingsPage() {
       {/* Demo Listings Result Grid */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            Showing {listings.length} Isolated Demo Listing{listings.length === 1 ? '' : 's'}
+          <span className="text-xs font-bold text-[#5F6368] dark:text-[#BDC1C6] uppercase tracking-wider">
+            Showing {listings.length} Sample Listing{listings.length === 1 ? '' : 's'} (Example Only)
           </span>
           <Link
             href="/find"
-            className="text-xs font-bold text-brand-700 hover:text-brand-900 flex items-center gap-1"
+            className="text-xs font-bold text-[#1A73E8] dark:text-[#8AB4F8] hover:underline flex items-center gap-1"
           >
-            Go to Live Real Search <ArrowRight className="w-3.5 h-3.5" />
+            <span>Switch to Real Student Listings</span> <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-xs text-slate-400">
-            Loading demo listings...
+          <div className="bg-white dark:bg-[#303134] rounded-3xl border border-[#DADCE0] dark:border-[#3C4043] p-12 text-center text-xs font-semibold text-[#5F6368] dark:text-[#BDC1C6]">
+            Loading sample listings...
           </div>
         ) : listings.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
-            <Building2 className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="font-bold text-slate-800 text-sm">No demo listings match your filters</h3>
-            <p className="text-xs text-slate-500">
-              You can create new demo listings or re-tag test data anytime in the internal portal.
+          <div className="bg-white dark:bg-[#303134] rounded-3xl border border-[#DADCE0] dark:border-[#3C4043] p-12 text-center space-y-3">
+            <Building2 className="w-10 h-10 text-slate-300 dark:text-[#5F6368] mx-auto" />
+            <h3 className="font-bold text-[#202124] dark:text-[#E8EAED] text-sm">No sample listings match your filters</h3>
+            <p className="text-xs text-[#5F6368] dark:text-[#BDC1C6]">
+              Try resetting your search filters or browse all accommodation types.
             </p>
           </div>
         ) : (
@@ -240,6 +241,7 @@ export default function DemoListingsPage() {
                 totalCapacity={listing.totalCapacity}
                 moveInDate={listing.moveInDate}
                 owner={listing.owner}
+                isVisualOnly={true}
               />
             ))}
           </div>

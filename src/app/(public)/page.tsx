@@ -35,7 +35,6 @@ export default function HomePage() {
 
   const [user, setUser] = useState<any>(null);
   const [featuredListings, setFeaturedListings] = useState<any[]>([]);
-  const [sampleListings, setSampleListings] = useState<any[]>([]);
   const [stats, setStats] = useState<{
     occupiedListingsCount: number;
     matchedStudentsCount: number;
@@ -55,7 +54,7 @@ export default function HomePage() {
       })
       .catch(() => {});
 
-    // 1. Fetch Real Live Verified Listings
+    // 1. Fetch Real Live Verified Listings (Excludes demo listings)
     fetch('/api/listings?status=ACTIVE')
       .then((res) => res.json())
       .then((data) => {
@@ -65,17 +64,7 @@ export default function HomePage() {
       })
       .catch(() => {});
 
-    // 2. Fetch Sample Demo Listings
-    fetch('/api/listings?demoOnly=true&status=ACTIVE')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.listings) {
-          setSampleListings(data.listings.slice(0, 4));
-        }
-      })
-      .catch(() => {});
-
-    // 3. Fetch Dynamic Public Matched Stats
+    // 2. Fetch Dynamic Public Matched Stats
     fetch('/api/stats')
       .then((res) => res.json())
       .then((data) => {

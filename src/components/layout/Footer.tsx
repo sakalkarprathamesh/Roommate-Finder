@@ -47,6 +47,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/demo" className="hover:text-[#1A73E8] dark:hover:text-[#8AB4F8] transition-colors flex items-center gap-1.5">
+                  <span>Demo Listings (Examples)</span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/pg/new" className="hover:text-[#1A73E8] dark:hover:text-[#8AB4F8] transition-colors">
                   Add Your PG
                 </Link>

@@ -228,6 +228,19 @@ export default function Navbar() {
                 <span>Admin Portal</span>
               </Link>
             )}
+
+            <Link
+              href="/demo"
+              className={`px-3 py-1.5 rounded-2xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                pathname === '/demo'
+                  ? 'bg-[#E8F0FE] text-[#1A73E8] dark:bg-[#1E3A5F] dark:text-[#8AB4F8]'
+                  : 'text-[#5F6368] hover:text-[#202124] dark:text-[#BDC1C6] dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#3C4043]'
+              }`}
+              title="Explore Sample Demo Listings"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#FBBC04]" />
+              <span>Demo</span>
+            </Link>
           </nav>
 
           {/* Right Controls */}
@@ -546,6 +559,13 @@ export default function Navbar() {
             className="flex items-center gap-2 p-2.5 rounded-2xl font-bold text-xs text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
           >
             <Search className="w-4 h-4" /> <span>Find Accommodations</span>
+          </Link>
+          <Link
+            href="/demo"
+            onClick={() => setShowMobileMenu(false)}
+            className="flex items-center gap-2 p-2.5 rounded-2xl font-bold text-xs text-[#202124] dark:text-[#FFFFFF] hover:bg-slate-50 dark:hover:bg-[#3C4043]"
+          >
+            <Sparkles className="w-4 h-4 text-[#FBBC04]" /> <span>Demo Preview (Examples)</span>
           </Link>
 
           {user ? (
